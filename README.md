@@ -30,3 +30,7 @@ Checks which Arch Linux package owns a command
 ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
+
+retry
+---
+retry a command 5 times or until it succeeds

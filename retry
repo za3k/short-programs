@@ -1,0 +1,15 @@
+#!/bin/bash
+nTrys=0
+maxTrys=5
+status=256
+until [ $status == 0 ] ; do
+    $1
+    status=$?
+    nTrys=$(($nTrys + 1))
+    if [ $nTrys -gt $maxTrys ] ; then
+        exit $status
+    fi
+    if [ $status != 0 ] ; then
+        sleep 1
+    fi
+done
