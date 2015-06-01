@@ -31,6 +31,10 @@ ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
 
+random
+---
+Print a random line out of a file
+
 retry
 ---
-retry a command 5 times or until it succeeds
+Retry a command 5 times or until it succeeds

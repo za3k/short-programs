@@ -1,0 +1,5 @@
+#!/usr/bin/python
+import random
+import fileinput
+lines = (line.rstrip("\r\n") for line in fileinput.input())
+print(random.choice(list(lines)))
