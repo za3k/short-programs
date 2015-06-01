@@ -1,0 +1,58 @@
+#!/usr/bin/python2.7
+import argparse
+import sys
+import collections
+import itertools
+
+def make_filter(filter_list, positive, limited=False):
+    '''
+    Returns a function which acts as a positive/negative filter.
+    Warning: If limited is True, the filter is NOT referentially transparent.
+    '''
+    if limited:
+        return make_limited_filter(filter_list, positive)
+    else:
+        return make_unlimited_filter(filter_list, positive)
+
+def make_unlimited_filter(filter_list, positive):
+    if positive:
+        valid = set(filter_list)
+        return lambda x: x in valid
+    else:
+        invalid = set(filter_list)
+        return lambda x: x not in invalid
+
+def make_limited_filter(filter_list, positive):
+    return LimitedFilter(filter_list)
+
+class LimitedFilter():
+    def __init__(self, filter_list, positive):
+        self.d = collections.Counter(filter_list)
+        self.positive = positive
+    def remove(self, elt):
+        self.d -= collections.Counter([elt]) #deletes if absent
+    def __call__(self, elt):
+        if elt in self:
+            self.remove(elt)
+            return not self.positive
+        else:
+            return self.positive
+
+def filt(filt_file, filtered_file, positive, limited)
+    filter_ = make_filter(filt_file, positive=positive, limited=limited)
+    return itertools.ifilter(filter_, filtered_file):
+    
+def main():
+    parser = argparse.ArgumentParser('Filter lines matching a specified filter')
+    parser.add_argument('-n', '--negative', dest='positive', default=False, action='store_false', help='only reject lines in the filter file (default)')
+    parser.add_argument('-p', '--positive', dest='positive', action='store_true', help='only accept lines in the filter file')
+    parser.add_argument('-u', '--unlimited', dest='limited', default=False, action='store_false', help='accept/reject lines every time they are encountered')
+    parser.add_argument('-l', '--limited', dest='limited', action='store_true', help='accept/reject lines once for each time they are in the filter only (and then do the reject/accept afterwards)')
+    parser.add_argumennt(metavar="FILTER", dest='filter', type=file, help='an (unordered) list of lines to use as a filter')
+    parser.add_argument(metavar="INPUT", dest='input', type=file, nargs="?", default=sys.stdin, help='these lines are output if and only if they match the specified filter')
+    options = parser.parse_args()
+    for valid_line in filt(options.filter, options.input, positive=options.positive, limited=options.limited):
+        print valid_line,
+
+if __name__=='__main__':
+    main()

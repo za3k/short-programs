@@ -1,0 +1,76 @@
+#!/usr/bin/python2.7
+# Multiset operations
+# Set operations
+import argparse
+import collections
+import sys
+from functools import partial, reduce
+import operator
+
+def binary_file_op(string, file1, file2):
+    f = tempfile.NamedTemporaryFile()
+    subprocess.call(string, file1.name, file2.name, ">", f.name)
+    return f
+
+def set_op(op, files):
+    sets = map(set, files)
+    poss = reduce(operator.or_, sets)
+    for line in poss:
+        if op(*[line in fn for fn in sets]):
+            pass
+            print line,
+
+def multiset_op(op, files):
+    bags = map(collections.Counter, files)
+    poss = reduce(operator.or_, map(set, bags))
+    for line in poss:
+        for _ in range(op(*[fn.get(line, 0) for fn in bags])):
+            print line,
+
+def binary_set_op(op, f1, f2):
+    return set_op(op, [f1, f2])
+
+def binary_multiset_op(op, f1, f2):
+    return multiset_op(op, [f1, f2])
+
+def main():
+    parser = argparse.ArgumentParser(description='Perform simple set operations with unordered files.')
+    subparsers = parser.add_subparsers()
+    # Set options 
+    set_parser = subparsers.add_parser("set", help='perform set operation ("set -h" for more help)')
+  
+    setops = set_parser.add_mutually_exclusive_group(required=True)
+    for opname, help, opfunc in [
+            ('union', 'print all lines which appear in either file', operator.or_),
+            ('intersection', 'print all lines which appear in either file', operator.and_),
+            ('difference', 'print all lines which appear in the first file but not the second', lambda a,b: a and not b),
+            ('symmetric-difference', 'print all lines which appear in exactly one of the two files', operator.xor),
+            ]:
+        setops.add_argument('--'+opname, dest='func', help=help, 
+            action='store_const', const=partial(binary_set_op, opfunc),)
+    
+    set_parser.add_argument('file1', type=file)
+    set_parser.add_argument('file2', type=file)
+    
+    # Multiset options
+    multiset_parser = subparsers.add_parser("ms", help='perform multiset operation ("ms -h" for more help)')
+
+    msops = multiset_parser.add_mutually_exclusive_group(required=True)
+    for opname, help, opfunc in [
+            ('union', 'print whichever count of lines appears more', max),
+            ('intersection', 'print which count of lines appears less', min),
+            ('difference', 'print <n> copies of a line which appear <m+n> times in the first file but only <m> times in the second; lines which appear more times in the second file are not printed', lambda a,b: max(a-b,0)),
+            ('sym_difference', 'print <n> copies of a lines which appears  <m+n> times in one file and <m> times in the other', lambda a,b: abs(m-n)),
+            ('add', 'combine the two files', operator.add),
+            ]:
+        msops.add_argument('--'+opname, dest='func', help=help, 
+            action='store_const', const=partial(binary_multiset_op, opfunc),)
+    
+    multiset_parser.add_argument('file1', type=file)
+    multiset_parser.add_argument('file2', type=file)
+
+    options = parser.parse_args()
+    options.func(options.file1, options.file2)
+
+if __name__=="__main__":
+    main()

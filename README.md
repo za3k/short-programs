@@ -35,6 +35,10 @@ dzen-clock
 ---
 Make a small clock at the bottom of the screen
 
+filter
+---
+Usage: `cat <stream | filter --negative FILENAME` blacklists anything in FILENAME, there are options for whitelisting and dealing with repeats.
+
 google
 ---
 Searches for something on google, opening the results page in the default browser.
@@ -105,6 +109,10 @@ Print a random line out of a file
 retry
 ---
 Retry a command 5 times or until it succeeds
+
+setop
+---
+Command-line program for performing basic set operations on lines in files. `comm` can be used for some of this on sorted files but it's a little stronger.
 
 timer
 ---
