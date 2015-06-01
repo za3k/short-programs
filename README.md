@@ -7,6 +7,10 @@ decolorize
 ---
 Strips ANSI color codes out of a stream
 
+dzen-clock
+---
+Make a small clock at the bottom of the screen
+
 google
 ---
 Searches for something on google, opening the results page in the default browser.

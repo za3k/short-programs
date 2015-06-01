@@ -1,0 +1,6 @@
+#!/bin/bash
+while true; do
+    date
+    dmesg | tail -n 10
+    sleep 1
+done | dzen2 -y 744 -h 24 -l 10 -u
