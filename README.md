@@ -46,3 +46,7 @@ Print a random line out of a file
 retry
 ---
 Retry a command 5 times or until it succeeds
+
+timer
+---
+Kitchen timer for the command line

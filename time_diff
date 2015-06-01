@@ -1,0 +1,29 @@
+#!/bin/bash
+# Readable display the difference between two unix timestamps
+function pad {
+    if expr length $1 "<" 2 >/dev/null
+    then
+        PADDED=0$1
+    else
+        PADDED=$1
+    fi
+}
+
+DIFF=`expr $2 - $1`
+if [[ $DIFF -lt 0 ]]
+then
+    echo -n -
+    DIFF=`expr 0 - $DIFF`
+else
+    echo -n +
+fi
+HOURS=`expr $DIFF / 3600`
+MINUTES=`expr \( $DIFF / 60 \) %  60`
+SECONDS_=`expr $DIFF % 60`
+pad $HOURS
+HOURS=$PADDED
+pad $MINUTES
+MINUTES=$PADDED
+pad $SECONDS_
+SECONDS_=$PADDED
+echo $HOURS:$MINUTES:$SECONDS_
