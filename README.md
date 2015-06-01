@@ -23,6 +23,10 @@ last
 ---
 Prints the last line from bash's history
 
+lines
+---
+Get a slice of lines from a file: `lines <start> <end> <file>` or `cat <file> | lines <start> <end>`.
+
 lwjgl-fix
 ---
 On Arch Linux, fix lwjgl.jar in minecraft
