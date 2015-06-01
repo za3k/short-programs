@@ -3,6 +3,10 @@ Short Programs
 
 A collection of short programs which I wrote and find useful, but don't need their own repository
 
+asciicam
+---
+Displays the webcam through ASCII graphics. Just for fun.
+
 confirm
 ---
 (Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
