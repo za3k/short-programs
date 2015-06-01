@@ -1,0 +1,5 @@
+#!/bin/bash
+cd /usr/share/lwjgl
+cp jar/jinput.jar jar/lwjgl_util.jar jar/lwjgl.jar ~/.minecraft/bin
+cp native/linux/* ~/.minecraft/bin/natives
+cd ~
