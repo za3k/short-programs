@@ -43,6 +43,10 @@ lwjgl-fix
 ---
 On Arch Linux, fix lwjgl.jar in minecraft
 
+{brown,pink,white}noise
+---
+Play randomly-generated noise through the speakers
+
 owns?
 ---
 Checks which Arch Linux package owns a command

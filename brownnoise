@@ -1,0 +1,2 @@
+#!/bin/bash
+play -V0 -r 44100 -c 2 -n synth brownnoise

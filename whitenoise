@@ -1,0 +1,2 @@
+#!/bin/bash
+play -r 44100 -c 2 -n synth whitenoise gain vol 0.4
