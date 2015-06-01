@@ -71,6 +71,10 @@ timer
 ---
 Kitchen timer for the command line
 
+webcam-picture
+---
+Use the webcam to take a single picture. Usage: `webcam-picture picture.png`
+
 wordcount
 ---
 Counts the number of words in a file or stream.
