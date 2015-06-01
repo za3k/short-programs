@@ -3,6 +3,10 @@ Short Programs
 
 A collection of short programs which I wrote and find useful, but don't need their own repository
 
+confirm
+---
+(Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
+
 decolorize
 ---
 Strips ANSI color codes out of a stream
