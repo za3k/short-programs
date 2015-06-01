@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+import fileinput
+import random
+import re
+from itertools import *
+from collections import Counter
+
+def words():
+    for line in fileinput.input():
+        words = re.split(" +", line)
+        for word in words:
+            yield word
+
+def pairwise(iterable):
+    a,b = tee(iterable)
+    next(b, None)
+    for m in zip_longest(a,b):
+        yield m
+def sample_counter(counter):
+    total = sum(counter.values())
+    r = random.randint(1, total)
+    for value, count in counter.items():
+        if r <= count:
+            return value
+        r -= count
+    assert(False)
+
+def create_markov1(words):
+    c = Counter(pairwise(words))
+    markov = {}
+    for (a,b) in c:
+        markov[a] = markov.get(a, {})
+        markov[a][b] = c[(a,b)]
+    for a in markov:
+        markov[a] = Counter(markov[a])
+    return markov
+
+def next_word(last_word, markov):
+    return sample_counter(markov[last_word])
+def sample_markov(initial, markov, length):
+    last, next_ = None, initial
+    while next_ and length:
+        yield next_
+        last = next_
+        next_ = next_word(last, markov) 
+        length -= 1
+
+def main():
+    markov = create_markov1(words())
+    initials = Counter({a : sum(markov[a].values()) for a in markov})
+    length = 100
+    sequence = []
+    while len(sequence) < length:
+        initial = sample_counter(initials)
+        sequence.extend(sample_markov(initial, markov, length-len(sequence)))
+    print(' '.join(sequence))
+
+if __name__=='__main__':
+    main()

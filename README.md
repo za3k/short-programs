@@ -59,6 +59,26 @@ lwjgl-fix
 ---
 On Arch Linux, fix lwjgl.jar in minecraft
 
+markov
+---
+# markov
+Markov-chain input on a per-word basis
+
+    > curl http://www.ccel.org/ccel/bible/kjv.txt | ./markov # King James Bible
+    name resteth and can never a coffin in it; it doth also vanity unto Joseph, I live: and entered into the son of the gate was Jaziz the sons also suck the son of Jehoiada, a sign.
+ 
+    preserved in wait with it.
+    
+    the
+    while they
+    prophets?
+    our God, the angel, and became a loud voice, that have said, Hearken to me.
+    
+    concerning his presence; let him to those that is the
+    Lord of the solemn feasts, as these things in the
+    thou succeedest them, and buy them, Thus saith unto the tribe of
+    that thou hast followed
+
 {brown,pink,white}noise
 ---
 Play randomly-generated noise through the speakers
