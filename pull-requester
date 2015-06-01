@@ -1,0 +1,64 @@
+#!/bin/bash
+# Obsoleted by git-hub (https://hub.github.com/)
+#Example config:
+#OWNER="StreakYC"
+#REPO="MailFoo"
+function current_branch () {
+    git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* //'
+}
+
+function authorize() {
+    curl -s -X POST -u "$GITHUB_USER" "https://api.github.com/authorizations" -d '{"scopes":["repo"],"note":"pull-requester","note_url":"https://github.com/vanceza/pull-requester"}' | sed -n -e '/token/p' | sed -e 's/.*"token": "\(.*\)".*/\1/'
+}
+
+function usage() {
+    echo "Usage: $(basename $0) [-t title] [-b body]" && exit 2
+}
+
+BASE=master
+BODY=""
+HEAD=$(current_branch)
+TITLE="$HEAD"
+DEFAULT_XDG_CONFIG_HOME="$HOME/.config"
+XDG_CONFIG_HOME="${DEFAULT_XDG_CONFIG_HOME-"$XDG_CONFIG_HOME"}"
+SETTINGS_FILE="$XDG_CONFIG_HOME/pull-requester.rc"
+. "$SETTINGS_FILE"
+
+while getopts b:t: name
+do
+    case $name in
+    t)  TITLE="$OPTARG";;
+    b)  BODY="$OPTARG";;
+    ?)  usage ;;
+    esac
+done
+
+shift $(($OPTIND -1))
+if [ $# -gt 0 ]; then usage; fi
+
+if [ "$GITHUB_USER" == "" ]
+then
+    echo "No user present in configuration file $SETTINGS_FILE"
+    echo -n "What is your github user name? "
+    read GITHUB_USER
+    echo -n "GITHUB_USER=$GITHUB_USER" | tee -a "$SETTINGS_FILE"
+    echo >> "$SETTINGS_FILE"
+    echo " added to configuration file $SETTINGS_FILE"
+fi
+
+if [ "$OAUTH_TOKEN" == "" ]
+then
+    echo "No oauth token found."
+    OAUTH_TOKEN="$(GITHUB_USER=$GITHUB_USER authorize)"
+    echo "OAUTH_TOKEN=$OAUTH_TOKEN" >> "$SETTINGS_FILE"
+    echo "Oauth token written to settings file."
+fi
+
+curl -X POST -i -H "Authorization: token $OAUTH_TOKEN" "https://api.github.com/repos/$OWNER/$REPO/pulls" -d@- >&2 <<-JSON   
+    {
+        "title": "$TITLE",
+        "body": "$BODY",
+        "head": "$HEAD",
+        "base": "$BASE"
+    }
+JSON

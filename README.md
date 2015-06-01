@@ -31,6 +31,10 @@ ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
 
+pull-requester
+---
+(Obsoleted by git-hub command) Create a new pull request on github for the current github project
+
 random
 ---
 Print a random line out of a file
