@@ -61,7 +61,6 @@ On Arch Linux, fix lwjgl.jar in minecraft
 
 markov
 ---
-# markov
 Markov-chain input on a per-word basis
 
     > curl http://www.ccel.org/ccel/bible/kjv.txt | ./markov # King James Bible
