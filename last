@@ -1,0 +1,2 @@
+#!/bin/bash
+history 2 | head -n1 | tr -s ' ' | cut -d ' ' -f"4-"
