@@ -66,3 +66,7 @@ Retry a command 5 times or until it succeeds
 timer
 ---
 Kitchen timer for the command line
+
+wordcount
+---
+Counts the number of words in a file or stream.
