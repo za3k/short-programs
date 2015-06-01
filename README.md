@@ -7,6 +7,10 @@ asciicam
 ---
 Displays the webcam through ASCII graphics. Just for fun.
 
+changed-files
+---
+In Arch Linux, lists the config files which have been altered from the default.
+
 confirm
 ---
 (Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
