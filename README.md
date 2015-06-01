@@ -11,6 +11,14 @@ changed-files
 ---
 In Arch Linux, lists the config files which have been altered from the default.
 
+clonebb
+---
+Clones a Bitbucket repository. Usage: `clonebb [USER] REPOSITORY`
+
+clonegh
+---
+Clones a Github repository. Usage: `clonegh [USER] REPOSITORY`
+
 confirm
 ---
 (Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
@@ -66,6 +74,10 @@ Return true if the internet is up (a single ping to 8.8.8.8 returns).
 pull-requester
 ---
 (Obsoleted by git-hub command) Create a new pull request on github for the current github project
+
+pushgh
+---
+Push to an empty Github repo. Usage: `pushgh [USER] REPOSITORY`
 
 random
 ---

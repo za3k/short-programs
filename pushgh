@@ -1,0 +1,28 @@
+ER=vanceza
+
+PROGNAME=$(basename "$0")
+usage(){
+    echo "Usage: $PROGNAME [USER] REPOSITORY"
+    exit 1;
+}
+
+case $# in
+    1)
+        USER=${DEFAULT_USER}
+        REPO=$1
+        ;;
+    2)
+        USER=$1
+        REPO=$2
+        ;;
+    *)
+        usage
+esac
+
+# TODO: Deal with the repo-exists-already case
+git init
+git add -A
+git commit -m 'Initial commit'
+
+git remote add origin git@github.com:${USER}/${REPO}.git
+git push -u origin master
