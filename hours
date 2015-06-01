@@ -1,0 +1,2 @@
+#!/bin/bash
+awk '{ print $4 }' <~/.bash_eternal_history | sort | python ~/bin/hours.py

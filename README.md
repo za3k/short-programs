@@ -7,6 +7,10 @@ decolorize
 ---
 Strips ANSI color codes out of a stream
 
+hours
+---
+Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
+
 google
 ---
 Searches for something on google, opening the results page in the default browser.
