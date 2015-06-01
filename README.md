@@ -31,6 +31,10 @@ hours
 ---
 Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
 
+internet-timelimit
+---
+(Arch, netcfg) Connects to the internet for short period of time, then automatically disconnects. Usage: `internet.sh MINUTES REASON`
+
 last
 ---
 Prints the last line from bash's history
