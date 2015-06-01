@@ -1,7 +1,11 @@
 Short Programs
 ---
 
-A collection of short programs which I wrote and are useful, but don't need their own repository
+A collection of short programs which I wrote and find useful, but don't need their own repository
+
+google
+---
+Searches for something on google, opening the results page in the default browser.
 
 last
 ---
