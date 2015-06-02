@@ -94,6 +94,10 @@ ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
 
+pomodoros
+---
+Reports number of pomodoros completed to beeminder. Usage: `pomdoros NUM-POMODOROS DESC`
+
 pull-requester
 ---
 (Obsoleted by git-hub command) Create a new pull request on github for the current github project
