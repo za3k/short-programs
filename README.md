@@ -43,6 +43,16 @@ google
 ---
 Searches for something on google, opening the results page in the default browser.
 
+# google-count
+Show the number of results on Google for xkcd-style big data analysis.
+
+Requirements: `pip install beautifulsoup4`
+
+Usage:
+
+    google-count.py "Hello world"
+    264000000
+
 hours
 ---
 Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
