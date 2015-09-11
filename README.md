@@ -124,6 +124,10 @@ retry
 ---
 Retry a command 5 times or until it succeeds
 
+say
+---
+Read the text aloud. Requires `festival`.
+
 setop
 ---
 Command-line program for performing basic set operations on lines in files. `comm` can be used for some of this on sorted files but it's a little stronger.
