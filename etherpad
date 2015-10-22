@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+use URI::Escape;
+
+my $usage = <<'USAGE';
+Usage: etherpad put [<pad>]
+                get <pad>
+                delete <pad>
+USAGE
+my $cmd = shift or die $usage;
+my $server = "https://etherpad.za3k.com";
+my $apikey = "bbfe3f54019203edb4ebc90033ba8db67dbc429f5db9f694cac6c3c95fb6916d";
+if ($cmd eq "put") {
+	my $text = do { local $/; <STDIN> };
+    $text = uri_escape($text);
+	my $pad=shift or join("",map { ("a".."z")[rand 26] } 1..8);
+	my $create_url="$server/api/1/createPad?apikey=$apikey&padID=$pad&text=$text";
+	if (!system("curl --request GET \"$create_url\" | grep \"does already\"")) {
+		my $update_url="$server/api/1/setText?apikey=$apikey&padID=$pad&text=$text";
+		exec("curl --request GET \"$update_url\"")
+	}
+	print "$server/p/$pad, $server/p/$pad/export/txt ";
+} elsif ($cmd eq "get") {
+	my $pad=shift or die $usage;
+	exec("curl --request GET $server/p/$pad/export/txt");
+} elsif ($cmd eq "delete") {
+	my $pad = shift or die $usage;
+	my $url="$server/api/1/deletePad?apikey=$apikey&padID=$pad";
+	exec("curl --request GET \"$url\"");
+} else {
+	die $usage;
+}

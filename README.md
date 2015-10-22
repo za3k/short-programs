@@ -35,6 +35,14 @@ dzen-clock
 ---
 Make a small clock at the bottom of the screen
 
+etherpad
+---
+Create, update, fetch, or delete text files on etherpad.za3k.com (or any other etherpad-lite instance).
+
+    Usage: etherpad put [<pad>]
+                    get <pad>
+                    delete <pad>
+
 filter
 ---
 Usage: `cat <stream | filter --negative FILENAME` blacklists anything in FILENAME, there are options for whitelisting and dealing with repeats.
