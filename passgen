@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ $1 ]; then
+  randompassLength=$1
+else
+  randompassLength=8
+fi
+ 
+tr -dc A-Za-z0-9 </dev/urandom | head -c $randompassLength
+echo

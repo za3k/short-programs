@@ -108,6 +108,14 @@ owns?
 ---
 Checks which Arch Linux package owns a command
 
+passgen
+---
+Returns a random password
+
+Usage:
+
+        passgen [LENGTH]
+
 ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
