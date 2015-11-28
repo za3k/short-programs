@@ -43,6 +43,12 @@ Create, update, fetch, or delete text files on etherpad.za3k.com (or any other e
                     get <pad>
                     delete <pad>
 
+extract-alarmpi
+---
+Downloads the latest version of Arch Linux for Raspberry Pi (aka alarmpi) as a .tar.gz file and converts it to an image file which can be copied directly to an SD card.
+
+    Usage: extract-alarmpi [SOURCE.tar.gz [TARGET.img]]
+
 filter
 ---
 Usage: `cat <stream | filter --negative FILENAME` blacklists anything in FILENAME, there are options for whitelisting and dealing with repeats.

@@ -1,0 +1,67 @@
+# SOURCE is a .tar.gz file containing arch linux for raspberry pi
+UPSTREAM_SOURCE="ArchLinuxARM-rpi-latest.tar.gz"
+UPSTREAM_URL="http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz"
+if [ -n "$1" ]
+then
+    SOURCE=$1
+else
+    echo "Downloading latest Arch Linux ARM distribution..."
+    wget -N "${UPSTEAM_URL}"
+    SOURCE="${UPSTREAM_SOURCE}"
+fi
+# TARGET is a .img binary file
+TARGET=image
+[ -n "$2" ] && TARGET=$2 
+# SIZE in bytes
+SIZE=$((1000*1000*1000*8)) # 8G
+LOOP_DEVICE=/dev/loop0
+
+modinfo loop | grep -q max_part || {
+    echo "You must modprobe 'loop' so it is loaded with 'max_part=2' or greater"
+    exit 1
+}
+
+# Delete any existing image
+rm -f "$TARGET"
+# Make a file filled with zeros
+dd if=/dev/zero of="$TARGET" bs=1024 count=$((SIZE/1024))
+sync
+losetup ${LOOP_DEVICE} "${TARGET}"
+# Format the disk to have a FAT32 partition and then an ext4 partition
+fdisk "${LOOP_DEVICE}" <<EOF
+o
+p
+n
+p
+1
+
++100M
+t
+c
+n
+p
+2
+
+
+w
+EOF
+BOOT_DEVICE="${LOOP_DEVICE}p1"
+ROOT_DEVICE="${LOOP_DEVICE}p2"
+mkfs.vfat ${BOOT_DEVICE}
+mkfs.ext4 ${ROOT_DEVICE}
+
+mkdir /tmp/boot /tmp/root
+
+mount ${BOOT_DEVICE} /tmp/boot
+mount ${ROOT_DEVICE} /tmp/root
+bsdtar -xpf "${SOURCE}" -C /tmp/root
+mv /tmp/root/boot/* /tmp/boot
+
+umount /tmp/boot /tmp/root
+rmdir /tmp/root /tmp/boot
+sudo losetup -d "${LOOP_DEVICE}"
+
+# Reproducible build
+touch -r "${SOURCE}" "${TARGET}"
+# Set the file to be owned by the real user and not root
+chown ${SUDO_UID:-$(id -r -u)}:${SUDO_GID:-$(id -r -g)} "${TARGET}"
