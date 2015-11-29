@@ -1,6 +1,13 @@
 # SOURCE is a .tar.gz file containing arch linux for raspberry pi
 UPSTREAM_SOURCE="ArchLinuxARM-rpi-latest.tar.gz"
 UPSTREAM_URL="http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz"
+if [ "$1" = "-h" ]
+then
+    echo "Usage: extract-alarmpi [SOURCE [TARGET [SIZE]]]" >/dev/stderr
+    echo "       SOURCE should be a .tar.gz file"
+    echo "       SIZE is specified in gigabytes (10^9 bytes)"
+fi
+
 if [ -n "$1" ]
 then
     SOURCE=$1
@@ -14,6 +21,8 @@ TARGET=image
 [ -n "$2" ] && TARGET=$2 
 # SIZE in bytes
 SIZE=$((1000*1000*1000*8)) # 8G
+[ -n "$3" ] && SIZE=$((1000*1000*1000*${3}))
+shift 3
 LOOP_DEVICE=/dev/loop0
 
 modinfo loop | grep -q max_part || {
