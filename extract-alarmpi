@@ -1,6 +1,6 @@
 # SOURCE is a .tar.gz file containing arch linux for raspberry pi
 UPSTREAM_SOURCE="ArchLinuxARM-rpi-latest.tar.gz"
-UPSTREAM_URL="http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz"
+UPSTREAM_URL="http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz"
 if [ "$1" = "-h" ]
 then
     echo "Usage: extract-alarmpi [SOURCE [TARGET [SIZE]]]" >/dev/stderr
@@ -35,7 +35,7 @@ rm -f "$TARGET"
 # Make a file filled with zeros
 dd if=/dev/zero of="$TARGET" bs=1024 count=$((SIZE/1024))
 sync
-losetup ${LOOP_DEVICE} "${TARGET}"
+losetup ${LOOP_DEVICE} "${TARGET}" || exit 1
 # Format the disk to have a FAT32 partition and then an ext4 partition
 fdisk "${LOOP_DEVICE}" <<EOF
 o
