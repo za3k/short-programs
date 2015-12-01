@@ -13,7 +13,7 @@ then
     SOURCE=$1
 else
     echo "Downloading latest Arch Linux ARM distribution..."
-    wget -N "${UPSTEAM_URL}"
+    wget -N "${UPSTREAM_URL}"
     SOURCE="${UPSTREAM_SOURCE}"
 fi
 # TARGET is a .img binary file
