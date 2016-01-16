@@ -1,0 +1,19 @@
+#!/bin/bash
+description() {
+  pacman -Qi "$1" | grep Description | sed -e 's/Description *: //'
+}
+arch_packages() {
+  comm -23 <(pacman -Qqe | grep -v "$(pacman -Qqm)"|sort) <(pacman -Qqg base base-devel|sort)
+}
+aur_packages() {
+  pacman -Qqm
+}
+join() { 
+  tr "\n" " "
+}
+echo "Standard packages: $(arch_packages | join)"
+echo "AUR packages: $(aur_packages | join)"
+{
+  arch_packages | while read package; do echo "$package: $(description "$package")"; done
+  aur_packages | while read package; do echo "$package [AUR]: $(description "$package")"; done
+} | sort

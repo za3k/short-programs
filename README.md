@@ -3,6 +3,10 @@ Short Programs
 
 A collection of short programs which I wrote and find useful, but don't need their own repository
 
+arch-package-summary
+---
+Lists manually installed packages with descriptions. Both normal and AUR packages are included, but AUR packages are tagged.
+
 asciicam
 ---
 Displays the webcam through ASCII graphics. Just for fun.
