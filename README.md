@@ -57,6 +57,11 @@ filter
 ---
 Usage: `cat <stream | filter --negative FILENAME` blacklists anything in FILENAME, there are options for whitelisting and dealing with repeats.
 
+fragile-treediff
+---
+Usage: `fragile-treediff FOLDER1 FOLDER2`
+Returns a success or failure error code, depending on whether two folders are exactly identical.
+
 google
 ---
 Searches for something on google, opening the results page in the default browser.
