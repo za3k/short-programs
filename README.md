@@ -35,6 +35,10 @@ decolorize
 ---
 Strips ANSI color codes out of a stream
 
+delink
+---
+Usage: `delink FILE`. Removes a level of symlink, moving the symlink's target in place of the symlink. Can have bad side-effects, use with caution.
+
 dzen-clock
 ---
 Make a small clock at the bottom of the screen

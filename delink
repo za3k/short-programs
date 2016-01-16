@@ -1,0 +1,19 @@
+#!/bin/bash
+# Removes one layer of symlink, preserving the names of the symlink
+
+while [ $# -gt 0 ]; do
+    if [ -L "$1" ]; then
+        link="$1"
+        dir="$(dirname "$1")"
+        target="$(readlink -f "$link")"
+        if [ -e "$target" ]
+        then
+            cp -P -a --remove-destination "$target" "$link"
+        else
+            echo "$1 does not point to a file which exists, skipping" >/dev/stderr
+        fi
+    else
+        echo "$1 is not a symlink, skipping" >/dev/stderr 
+    fi
+    shift
+done
