@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+function usage() {
+    echo "mvln FROM TO"
+}
+if [[ $# != 2 ]]; then
+    usage && exit 1
+fi
+mv -i "$1" "$2"
+ln -s "$2" "$1"

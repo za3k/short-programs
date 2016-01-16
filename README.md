@@ -38,6 +38,7 @@ Strips ANSI color codes out of a stream
 delink
 ---
 Usage: `delink FILE`. Removes a level of symlink, moving the symlink's target in place of the symlink. Can have bad side-effects, use with caution.
+See also `mvln`
 
 dzen-clock
 ---
@@ -118,6 +119,11 @@ Markov-chain input on a per-word basis
     Lord of the solemn feasts, as these things in the
     thou succeedest them, and buy them, Thus saith unto the tribe of
     that thou hast followed
+
+mvln
+---
+Moves a files, but leaves a symlink pointing to the new location in the old place.
+See also `delink`
 
 {brown,pink,white}noise
 ---
