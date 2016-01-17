@@ -135,11 +135,11 @@ Checks which Arch Linux package owns a command
 
 passgen
 ---
-Returns a random password
+Returns a random password or passphrase
 
 Usage:
 
-        passgen [LENGTH]
+        passgen [-w|--word] [LENGTH]
 
 ping-test
 ---

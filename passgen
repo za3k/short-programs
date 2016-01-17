@@ -1,9 +1,44 @@
 #!/bin/sh
-if [ $1 ]; then
-  randompassLength=$1
-else
-  randompassLength=8
-fi
- 
-tr -dc A-Za-z0-9 </dev/urandom | head -c $randompassLength
-echo
+PASSTYPE="chars"
+TARGET_BITS=80
+DICT=/usr/share/dict/words
+RANDOM_SOURCE=/dev/urandom
+ALLOWED_CHARS="A-Za-z0-9" # tr format
+ALLOWED_WORD_CHARS="a-z" # sed character class
+
+unset LENGTH
+for arg in "$@"; do
+case "$arg" in
+  -w|--word|--words)
+    PASSTYPE="words"
+    ;;
+  *)
+    LENGTH="${arg}"
+    ;;
+esac
+done
+
+case ${PASSTYPE} in
+  chars)
+    if [ -z "$LENGTH" ]; then
+      BITS_PER_CHAR=6 # log_2 62
+      LENGTH=$((TARGET_BITS/BITS_PER_CHAR))
+    fi
+    tr -dc "${ALLOWED_CHARS}" <"${RANDOM_SOURCE}" | head -c $LENGTH
+    echo
+    ;;
+  words)
+    if [ \! -e "${DICT}" ]; then
+      echo "Missing word dictionary: ${DICT}"
+      exit 1
+    fi
+    if [ -z "${LENGTH}" ]; then
+      #AVAILABLE_WORDS=$(sed -e "/[^a-z]/d" </usr/share/dict/words | wc -l | cut -d' ' -f1)
+      #BITS_PER_WORD=$(python -c "import math; print(math.log2(${AVAILABLE_WORDS}))")
+      BITS_PER_WORD=16 # floor (log_2 77115)
+      LENGTH=$((TARGET_BITS/BITS_PER_WORD))
+    fi
+    shuf -r "${DICT}" --random-source="${RANDOM_SOURCE}" | sed -e "/[^${ALLOWED_WORD_CHARS}]/d" | head -n "${LENGTH}" | tr "\n" " "
+    echo
+    ;;
+esac
