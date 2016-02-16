@@ -3,6 +3,10 @@ Short Programs
 
 A collection of short programs which I wrote and find useful, but don't need their own repository
 
+add-base26
+---
+Adds two lines of english text, mod 26 (ancient-style crypto)
+
 arch-package-summary
 ---
 Lists manually installed packages with descriptions. Both normal and AUR packages are included, but AUR packages are tagged.

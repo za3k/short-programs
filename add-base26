@@ -1,0 +1,12 @@
+#!/bin/python2
+num = lambda x: ord(x) - ord('a') + 1
+let = lambda x: chr(ord('a') - 1 + x)
+def addl(x,y):
+    n = num(x) + num(y)
+    if n > 26:
+      n -= 26
+    return let(n)
+add = lambda x,y: ''.join(addl(*pair) for pair in zip(x,y))
+l1 = raw_input()
+l2 = raw_input()
+print(add(l1, l2))
