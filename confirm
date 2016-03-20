@@ -1,2 +1,13 @@
 #!/bin/bash
-random /usr/share/confirm/confirm
+random <<EOF
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you should.  The 'confirm' program is a better general policy.
+Do the thing you thought you shouldn't.  The 'confirm' program is a better general policy.
+EOF
