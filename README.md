@@ -169,6 +169,15 @@ retry
 ---
 Retry a command 5 times or until it succeeds
 
+rtmux
+---
+
+Usage:
+
+    rtmux HOST
+
+Attaches to a remote tmux session, or opens one if none exists.
+
 say
 ---
 Read the text aloud. Requires `festival`.
