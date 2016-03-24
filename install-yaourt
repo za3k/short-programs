@@ -1,0 +1,27 @@
+#!/bin/bash
+# Remember to install base-devel and wget
+makeit () {
+    if [ $(whoami) = 'root' ]
+    then
+        makepkg -si --asroot
+    else
+        makepkg -si
+    fi
+}
+
+
+wget https://aur.archlinux.org/cgit/aur.git/snapshot/package-query.tar.gz
+tar zxvf package-query.tar.gz
+cd package-query
+makeit
+cd ..
+wget https://aur.archlinux.org/cgit/aur.git/snapshot/yaourt.tar.gz
+tar zxvf yaourt.tar.gz
+cd yaourt
+makeit
+cd ..
+rm package-query.tar.gz
+rm -r package-query
+rm yaourt.tar.gz
+rm -r yaourt
+

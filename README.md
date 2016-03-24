@@ -93,6 +93,10 @@ internet-timelimit
 ---
 (Arch, netcfg) Connects to the internet for short period of time, then automatically disconnects. Usage: `internet.sh MINUTES REASON`
 
+install-yaourt
+---
+Installs 'yaourt' on arch linux
+
 last
 ---
 Prints the last line from bash's history
