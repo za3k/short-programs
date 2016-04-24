@@ -189,6 +189,13 @@ Usage:
 
         passgen [-w|--word] [LENGTH]
 
+pdf-bounding-box
+---
+Prints the largest page of a PDF, so you know what size paper to print on.
+
+Usage:
+        pdf-bounding-box PDF
+
 pdf-strip-last-page
 ---
 Remove the last page of a pdf in-place.

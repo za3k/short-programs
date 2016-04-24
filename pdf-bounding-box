@@ -1,0 +1,2 @@
+#/usr/bin/sh
+\gs -dNOPAUSE -dBATCH -sDEVICE=bbox "$1" 2>&1 | awk 'BEGIN{ppi=72; i=1;} /%BoundingBox/{ printf("Page %d: ",i); print ($4-$2)/ppi,"x",($5-$3)/ppi; i=i+1; }'
