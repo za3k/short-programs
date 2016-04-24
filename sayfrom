@@ -1,0 +1,10 @@
+#!/bin/bash
+COLOR=$2
+while read A
+do
+    echo -e -n "[${COLOR}m"
+    echo -n "$1"
+    echo -e -n  "[0;0m"
+    echo -n ": $A"
+    echo
+done

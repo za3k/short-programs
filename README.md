@@ -194,6 +194,18 @@ say
 ---
 Read the text aloud. Requires `festival`.
 
+sayfrom
+---
+Print a stream of text as though in a chat client.
+
+Usage:
+    
+    sayfrom SPEAKER-NAME [ANSI COLOR CODE]
+
+Example:
+
+    sayfrom Zachary 2 <chat-FIFO
+
 setop
 ---
 Command-line program for performing basic set operations on lines in files. `comm` can be used for some of this on sorted files but it's a little stronger.
