@@ -133,6 +133,14 @@ mvln
 Moves a files, but leaves a symlink pointing to the new location in the old place.
 See also `delink`
 
+mux
+---
+Usage is at the top of a tmux config file:
+
+        #!/usr/bin/env mux
+
+This allows for fast startup, by executing a tmux configuration file as a program.
+
 {brown,pink,white}noise
 ---
 Play randomly-generated noise through the speakers
