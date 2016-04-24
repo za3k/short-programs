@@ -60,6 +60,12 @@ Create, update, fetch, or delete text files on etherpad.za3k.com (or any other e
                     get <pad>
                     delete <pad>
 
+embed-pdf-fonts
+---
+Embed missing fonts into a PDF.
+
+    Usage: embed-pdf-fonts <PDF>
+
 extract-alarmpi
 ---
 Downloads the latest version of Arch Linux for Raspberry Pi (aka alarmpi) as a .tar.gz file and converts it to an image file which can be copied directly to an SD card.

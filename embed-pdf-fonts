@@ -1,0 +1,2 @@
+#!/bin/bash
+\gs -sFONTPATH=/path/to/fonts:/another/dir/with/more/fonts -o output-pdf-with-embedded-fonts.pdf -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress "$1"
