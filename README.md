@@ -97,6 +97,10 @@ install-yaourt
 ---
 Installs 'yaourt' on arch linux
 
+internet_up?
+---
+Maintains a file at /var/tmp/internet_up reading "up" or "down". Run as a daemon. Useful for status bars.
+
 last
 ---
 Prints the last line from bash's history

@@ -1,0 +1,11 @@
+#!/bin/bash
+while true
+do
+    if ping -c 1 8.8.8.8 >/dev/null 2>/dev/null
+    then
+        echo "up" >/var/tmp/internet_up
+    else
+        echo "down" >/var/tmp/internet_up
+    fi
+    sleep 2
+done
