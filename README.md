@@ -75,7 +75,12 @@ google
 ---
 Searches for something on google, opening the results page in the default browser.
 
-# google-count
+google-calendar
+---
+Prints out a physical text-only calendar from Google Calendar
+
+google-count
+---
 Show the number of results on Google for xkcd-style big data analysis.
 
 Requirements: `pip install beautifulsoup4`

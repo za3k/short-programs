@@ -1,0 +1,42 @@
+#!/bin/bash
+# Written by tannhauser
+# Commissioned by Zachary Vance
+# Source: https://bountify.co/print-today-s-google-calendar
+declare -a tasks=()
+for i in "$@"
+do
+    case "$i" in
+    --agenda)
+        tasks+=('agenda')
+        ;;
+    --daily)
+        tasks+=("agenda '0am'")
+        ;;
+    --four-days)
+        tasks+=("agenda '$(date +%D)' '$(date -d '4 days' +%D)'")
+        ;;
+    --weekly)
+        tasks+=("calw")
+        ;;
+    --monthly)
+        tasks+=("calm")
+        ;;
+    --username=*)
+        USERNAME=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    --password=*)
+        PASSWORD=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    *)
+        echo 'unknown option'
+        ;;
+    esac
+done
+
+for task in "${tasks[@]}"
+do
+    gcalcli --nc --user=$USERNAME --pw=$PASSWORD $task > ~/.calendartmp &&
+    #cat ~/.calendartmp > /dev/lp
+    cat ~/.calendartmp
+    rm ~/.calendartmp  
+done
