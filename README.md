@@ -76,6 +76,10 @@ filter
 ---
 Usage: `cat <stream | filter --negative FILENAME` blacklists anything in FILENAME, there are options for whitelisting and dealing with repeats.
 
+find-git-repos
+---
+Usage: `find-git-repos DIRECTORY` prints all git repositories found, one per line.
+
 fragile-treediff
 ---
 Usage: `fragile-treediff FOLDER1 FOLDER2`

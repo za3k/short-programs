@@ -1,0 +1,15 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: find-git-repos DIRECTORY"
+}
+
+if [ $# -ne 1 ]
+then
+    usage;
+    exit 1
+fi
+
+DIRECTORY="$(realpath "$1")"; shift
+
+find ${DIRECTORY} -type d -name '.git' -printf '%h\n' # %h is 'dirname <file>'
