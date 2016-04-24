@@ -1,0 +1,2 @@
+#!/bin/bash
+feh -F -Z --cycle-once --action '/usr/bin/env/tag.sh %n' --action1 ';/usr/bin/env crop.sh %n'

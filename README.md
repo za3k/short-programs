@@ -219,6 +219,10 @@ setop
 ---
 Command-line program for performing basic set operations on lines in files. `comm` can be used for some of this on sorted files but it's a little stronger.
 
+tag_images
+---
+Tag images in a directory interactively, using 'feh'. One button resizes, another tags the image using an interactive program. I use this for processing scanned images.
+
 timer
 ---
 Kitchen timer for the command line
