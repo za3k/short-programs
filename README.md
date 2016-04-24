@@ -44,6 +44,10 @@ delink
 Usage: `delink FILE`. Removes a level of symlink, moving the symlink's target in place of the symlink. Can have bad side-effects, use with caution.
 See also `mvln`
 
+deshebang
+---
+Usage: `#!/usr/bin/env deshebang` at the top of a file, makes that file self-printing.
+
 dzen-clock
 ---
 Make a small clock at the bottom of the screen
