@@ -1,3 +1,2 @@
 #!/bin/bash
-diff -q <(tar c --xattrs -C "$1" --pax-option="exthdr.name=%d/PaxHeaders/%f" .| xxd) <(tar c --xattrs -C "$2" --pax-option="exthdr.name=%d/PaxHeaders/%f" .| xxd)
-
+diff -q <(tar c --xattrs -C "$1" --pax-option="exthdr.name=%d/PaxHeaders/%f" --pax-option='delete=atime' .| xxd) <(tar c --xattrs -C "$2" --pax-option="exthdr.name=%d/PaxHeaders/%f" --pax-option='delete=atime' .| xxd)
