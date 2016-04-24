@@ -225,3 +225,7 @@ Use the webcam to take a single picture. Usage: `webcam-picture picture.png`
 wordcount
 ---
 Counts the number of words in a file or stream.
+
+xadom
+---
+Runs adom in a fixed-geometry window (because window geometry affects gameplay)
