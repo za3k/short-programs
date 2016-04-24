@@ -52,6 +52,15 @@ dzen-clock
 ---
 Make a small clock at the bottom of the screen
 
+ebooks-sync
+---
+Sync books to a FAT filesystem, making sure to rewrite names to be valid for FAT/NTFS.
+
+Example:
+
+    SYNC_DIR="/media/sd" BOOKS_DIR="/home/zachary/books" ebooks-sync
+
+
 etherpad
 ---
 Create, update, fetch, or delete text files on etherpad.za3k.com (or any other etherpad-lite instance).

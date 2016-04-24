@@ -1,0 +1,23 @@
+#!/bin/bash
+SYNC_DIR="/media/sd"
+BOOKS_DIR="/home/zachary/books"
+
+fat_name() {
+  echo "$1" | tr -d '\\/:*?"<>|'
+}
+
+find "${BOOKS_DIR}" -regextype posix-extended -regex '.*/.*(pdf|txt|epub|mobi)' | while read from; do
+  name="$(basename "$from")"
+  to_name="$(fat_name "$name")"
+  to="${SYNC_DIR}/${to_name}"
+  if [ -f "$to" ]; then
+    echo "Skipping $to"
+  else
+    if [ "$name" != "$to_name" ]; then
+      echo "$name >> $to_name"
+    fi
+    echo "Copying $to"
+    sudo cp "$from" "$to"
+  fi
+done
+sync "$SYNC_DIR"
