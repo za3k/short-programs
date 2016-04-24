@@ -1,0 +1,3 @@
+#!/bin/bash
+pdftk "$1" cat 1-r2 output out.pdf
+mv out.pdf "$1"

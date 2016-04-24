@@ -180,6 +180,14 @@ Usage:
 
         passgen [-w|--word] [LENGTH]
 
+pdf-strip-last-page
+---
+Remove the last page of a pdf in-place.
+
+Usage:
+
+        pdf-strip-last-page PDF
+
 ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
