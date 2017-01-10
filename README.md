@@ -15,6 +15,10 @@ asciicam
 ---
 Displays the webcam through ASCII graphics. Just for fun.
 
+battery
+---
+Displays the current battery percentage as a short string for displays
+
 changed-files
 ---
 In Arch Linux, lists the config files which have been altered from the default.
