@@ -1,2 +1,2 @@
 #!/bin/bash
-${BROWER:-chromium} "www.google.com/search?q=\"${@}\""
+${BROWSER:-chromium} "www.google.com/search?q=\"${@}\""
