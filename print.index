@@ -1,0 +1,10 @@
+#!/usr/bin/sh
+if [ $# -eq 0 ]
+then
+    FILE="$(mktemp)"
+    cat >"$FILE"
+else
+    FILE="$1"
+fi
+set -x
+scp "$FILE" avalanche:/printme.index/.

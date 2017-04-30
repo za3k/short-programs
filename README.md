@@ -216,6 +216,10 @@ pomodoros
 ---
 Reports number of pomodoros completed to beeminder. Usage: `pomdoros NUM-POMODOROS DESC`
 
+print.index
+---
+Prints a file remotely, or prints from stdin if no file is given. Will not work in isolation, needs a remote program
+
 pull-requester
 ---
 (Obsoleted by git-hub command) Create a new pull request on github for the current github project
