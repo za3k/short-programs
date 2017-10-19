@@ -54,8 +54,8 @@ size(){
 dehumanize(){
     echo $1 | awk \
       'BEGIN{IGNORECASE = 1}
-       function printpower(n,b,p) {printf "%u\n", n*b^p; next}
-       /[0-9]$/{print $1;next};
+       function printpower(n,b,p) {printf "%u\n", n*b^p}
+       /[0-9]$/{print $1};
        /K(iB)?$/{printpower($1,  2, 10)};
        /M(iB)?$/{printpower($1,  2, 20)};
        /G(iB)?$/{printpower($1,  2, 30)};
