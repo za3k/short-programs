@@ -220,6 +220,20 @@ print.index
 ---
 Prints a file remotely, or prints from stdin if no file is given. Will not work in isolation, needs a remote program
 
+prng
+---
+Generate a bunch of pseudorandom data. Useful for data integrity tests of storage.
+Usage / examples: 
+    sudo prng test-usb BLOCKDEVICE
+    prng stream SEED | head -c 100 >some_file
+    prng stdout SEED [SIZE] | prng verify stdin SEED [SIZE]
+    prng file SEED [SIZE]
+        prng verify file SEED [SIZE]
+    prng files COUNT [SIZE]
+        sha256 -c checksums
+        prng verify files COUNT [SIZE]
+    prng checksums files COUNT [SIZE] > checksums
+
 pull-requester
 ---
 (Obsoleted by git-hub command) Create a new pull request on github for the current github project
