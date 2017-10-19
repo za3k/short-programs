@@ -1,0 +1,8 @@
+IFACE=enp0s25
+IP=192.168.1.55
+GATEWAY=192.168.1.1
+BROADCAST=192.168.1.255
+SUBNET_SIZE=24
+sudo ip addr add $IP/$SUBNET_SIZE broadcast $BROADCAST dev $IFACE
+sudo ip link set $IFACE up
+sudo ip route add default via $GATEWAY
