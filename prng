@@ -65,6 +65,29 @@ dehumanize(){
        /GB$/{    printpower($1, 10,  9)};
        /TB$/{    printpower($1, 10, 12)}'
 }
+write_block(){
+    seed=$1
+    blocksize=$2
+    offset=$(($3 - 1))
+    blocks=$4
+    device=$5
+    echo "writing block $((offset+1))/$blocks" >/dev/stderr
+    stdout $((seed + offset)) $blocksize | dd seek=$offset of=$device bs=$blocksize status=none
+}
+verify_block(){
+    seed=$1
+    blocksize=$2
+    offset=$(($3 - 1))
+    blocks=$4
+    device=$5
+    dd skip=$offset if=$device bs=$blocksize count=1 status=none | $0 verify stdin $((seed + offset)) $blocksize
+    if [ $? -eq 0 ]; then
+        echo "verified block $((offset+1))/$blocks" >/dev/stderr
+    else
+        echo "block $((offset+1))/$blocks incorrect" >/dev/stderr
+        exit 1
+    fi
+}
 
 [ $# -ge 1 ] || usage
 command=$1
@@ -185,27 +208,16 @@ case $command in
 
             # Test first and last block at the very start
             echo "writing first and last block to test failure quickly." >/dev/stderr
-            for offset in 0 $((blocks - 1)); do
-                stdout $((seed + offset)) $blocksize | dd seek=$offset of=$device bs=$blocksize status=none
-            done
-            for offset in 0 $((blocks - 1)); do
-                dd skip=$offset if=$device bs=$blocksize count=1 status=none | $0 verify stdin $((seed + offset)) $blocksize
-            done
+            write_block $seed $blocksize 1 $blocks $device
+            write_block $seed $blocksize $blocks $blocks $device
+            verify_block $seed $blocksize 1 $blocks $device || exit 1
+            verify_block $seed $blocksize $blocks $blocks $device || exit 1
             echo "first and last block verified. will now write+test every block" >/dev/stderr
-
-            seq 1 $((blocks - 2)) | while read offset; do
-                echo "writing block $((offset+1))/$blocks" >/dev/stderr
-                stdout $((seed + offset)) $blocksize | dd seek=$offset of=$device bs=$blocksize status=none
+            seq 2 $((blocks - 1)) | while read offset; do
+                write_block $seed $blocksize $offset $blocks $device
             done
-            echo "wrote data. verifying" >/dev/stderr
-            seq 0 $((blocks - 1)) | while read offset; do
-                dd skip=$offset if=$device bs=$blocksize count=1 status=none | $0 verify stdin $((seed + offset)) $blocksize
-                if [ $? -eq 0 ]; then
-                    echo "verified block $((offset+1))/$blocks" >/dev/stderr
-                else
-                    echo "block $((offset+1))/$blocks incorrect" >/dev/stderr
-                    exit 1
-                fi
+            seq 1 $blocks | while read offset; do
+                verify_block $seed $blocksize $offset $blocks $device || exit 1
             done
             echo "all correct" >/dev/stderr
             exit 0
