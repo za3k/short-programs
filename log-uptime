@@ -1,0 +1,11 @@
+#!/bin/bash
+logstat() {
+    echo "$1" >/dev/stderr
+    echo "$1" | netcat -u -6 -w 0 -i 4 graph.za3k.com 8125
+}
+logstat "uptime.$(hostname):1|c"
+NETWORK=`iwgetid -r`
+if [ -z "$NETWORK" ]; then
+    NETWORK="wired" # Or no internet, but we drop packets then so it's OK
+fi
+logstat "wifinetwork.$(hostname):${NETWORK}|g"
