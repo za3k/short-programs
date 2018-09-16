@@ -1,0 +1,8 @@
+#!/bin/bash
+[ $# -ge 2 ] || {
+    echo "Usage: tmux-session HOST SESSION-NAME [...]"
+    exit 1
+}
+host=$1; shift
+session=$1; shift
+ssh -t "${host}" "$@" -- "tmux attach -t ${session} || tmux new -s ${session} "

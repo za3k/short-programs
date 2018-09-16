@@ -256,6 +256,7 @@ rtmux
 Usage:
 
     rtmux HOST
+    rtmux-session HOST SESSION-NAME
 
 Attaches to a remote tmux session, or opens one if none exists.
 
