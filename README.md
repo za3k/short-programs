@@ -23,6 +23,14 @@ changed-files
 ---
 In Arch Linux, lists the config files which have been altered from the default.
 
+check-if-zeros
+---
+Checks if a block device (or file) is zero-ed.
+
+Example:
+
+    sudo check-if-zeros /dev/sdb
+
 clonebb
 ---
 Clones a Bitbucket repository. Usage: `clonebb [USER] REPOSITORY`

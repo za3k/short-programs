@@ -1,0 +1,6 @@
+sudo pv $1 | tr -d '\0' | read -n1 && {
+    echo "Not zeroed"
+    exit 1
+}
+echo "All zeros" >/dev/stderr
+exit 0
