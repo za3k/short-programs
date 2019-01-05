@@ -49,7 +49,7 @@ size(){
 	if [ -z "$size" ]; then
 		size=$DEFAULT_SIZE
 	fi
-	dehumanize $1
+	dehumanize $size
 }
 dehumanize(){
     echo $1 | awk \
@@ -184,7 +184,7 @@ case $command in
         device=$1
         blocksize=$(size $2)
         size=$(blockdev --getsize64 $device || stat --printf="%s" $device)
-        if [ -z "$2" ]; then
+        if [[ -z "$2" && $(( $size % $blocksize )) -ne 0 ]]; then
             echo "apparent size is: $size. writing data." >/dev/stderr
             stdout $seed $size | pv --size ${size} | dd of=$device
             echo "wrote data. verifying" >/dev/stderr
