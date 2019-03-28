@@ -300,6 +300,18 @@ timer
 ---
 Kitchen timer for the command line
 
+watch-to-file
+---
+Like 'watch', but outputs to a file instead of a TTY
+
+Usage:
+
+    watch-to-file -f FILE [-n INTERVAL] COMMAND
+
+Example:
+
+    watch-to-file -f /var/www/public/pub/status/temp.txt "/usr/local/bin/max-hdd-temp --pretty"
+
 webcam-picture
 ---
 Use the webcam to take a single picture. Usage: `webcam-picture picture.png`

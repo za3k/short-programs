@@ -1,0 +1,54 @@
+#!/bin/bash
+SHELL="/bin/bash"
+FREQUENCY="2"
+FILE=""
+COMMAND=""
+
+usage() {
+  echo "Usage: watch-to-file -f FILE [-n SECONDS] COMMAND" >/dev/stderr
+  exit 1
+}
+
+arg_count=0
+while [ $# -ge 1 ]; do
+  case "$1" in
+    -n)
+      FREQUENCY="$2"
+      [ $# -ge 2 ] || usage
+      shift 2;
+      ;;
+    -f)
+      FILE="$2"
+      [ $# -ge 2 ] || usage
+      shift 2;
+      ;;
+    *)
+      arg_count=$(( arg_count + 1 ))
+      case $arg_count in
+        1) 
+          COMMAND="$1"
+	  ;;
+	*)
+	  usage
+	  ;;
+      esac
+      shift 1;
+      ;;
+  esac
+done
+[ "$COMMAND" != "" ] || usage
+[ "$FILE" != "" ] || usage
+
+while true; do
+  TMP=`mktemp`
+  {
+    echo -n "Every ${FREQUENCY}s: "
+    echo "$COMMAND"
+    echo "Last run: $(\date)"
+    echo
+    sh -c "$COMMAND"
+  }>$TMP
+  chmod 444 $TMP
+  mv $TMP $FILE
+  sleep "$FREQUENCY"
+done
