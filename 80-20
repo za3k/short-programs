@@ -1,0 +1,41 @@
+#!/bin/env python3
+import sys
+
+def readargs(args):
+    files = []
+    if len(args) == 1:
+        files.append("-")
+    else:
+        for path in args[1:]:
+            if path=="-":
+                if "-" not in files:
+                    files.append("-")
+            else:
+                files.append(path)
+    for path in files:
+        if path == "-":
+            for line in sys.stdin:
+                yield line
+        else:
+            with open(path):
+                for line in path:
+                    yield line
+
+if __name__ == '__main__':
+    sizes = []
+    for line in readargs(sys.argv):
+        if line.strip() == '':
+            continue
+        sizes.append(int(line))
+    sizes.sort(reverse=True)
+    total = sum(sizes)
+    length = len(sizes)
+    records = []
+    for p in range(0, 101):
+        ps = sum(sizes[:int(length*0.01*p)])/total*100
+        records.append((p, ps, abs(100-ps-p)))
+        print("{:3}% of the files use {:3.0f}% of the space".format(p, ps))
+    print()
+    p, ps, _ = sorted(records, key=lambda x: x[2])[0]
+    print("{:3}% of the files use {:3.0f}% of the space".format(p, ps))
+

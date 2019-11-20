@@ -3,6 +3,16 @@ Short Programs
 
 A collection of short programs which I wrote and find useful, but don't need their own repository
 
+
+80-20
+---
+Takes a set of numbers as input, 1 per line. Outputs the 80-20 tradeoff (20% of the numbers make up 80% of the sum).
+
+Example:
+
+    80-20 file1.dat file2.dat
+    seq 1 100 | 80-20
+
 add-base26
 ---
 Adds two lines of english text, mod 26 (ancient-style crypto)
