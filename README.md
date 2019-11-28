@@ -111,6 +111,10 @@ find-git-repos
 ---
 Usage: `find-git-repos DIRECTORY` prints all git repositories found, one per line.
 
+find-mersenne-primes
+---
+Usage: `find-mersenne-primes` prints the exponents of mersenne primes (prints all N where 2^N-1 is prime). To change search limits edit the file.
+
 fragile-treediff
 ---
 Usage: `fragile-treediff FOLDER1 FOLDER2`

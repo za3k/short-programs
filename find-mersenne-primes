@@ -1,0 +1,22 @@
+#!/usr/bin/python
+def sieve(n):
+    primes = [2]
+    for x in range(2,n):
+        for p in primes:
+            if p**2 >x:
+                primes.append(x)
+                break
+            if x % p == 0:
+                break
+    return primes
+def is_prime(n):
+    return not any(n % x == 0 for x in range(2, int(n**0.5)+1))
+    #return not any(n % x == 0 for x in range(2, n))
+def is_mersenne_prime(p):
+    m = 2**p-1
+    s = 4
+    for _ in range(p-2):
+        s = (s**2 - 2) % m
+    return s == 0
+
+print(' '.join([str(x) for x in sieve(10000) if is_mersenne_prime(x)]))
