@@ -294,6 +294,18 @@ Example:
 
     sayfrom Zachary 2 <chat-FIFO
 
+scan-lide
+---
+Scans a series of pages using the LiDE scanner and 'sane'. Images are auto-cropped using imagemagick if dimensions are not given.
+
+Usage:
+    
+    scan-lide [DPI] [WIDTH HEIGHT]
+
+Example:
+
+    scan-lide 600dpi 195 155
+
 setop
 ---
 Command-line program for performing basic set operations on lines in files. `comm` can be used for some of this on sorted files but it's a little stronger.

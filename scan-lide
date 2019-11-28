@@ -1,0 +1,53 @@
+#!/bin/bash
+
+scan() {
+  [ $# -ge 1 ] || exit 1
+  OUT="$1"
+  shift
+  DPI="${1:-300dpi}"
+  WIDTH="${2:-214}"
+  HEIGHT="${3:-295}"
+  if [ -z "${1}" ]; then
+    scanimage --device pixma:04A91912_429479 --format=png --output-file "$OUT" -l2 -t 2 -x "$WIDTH" -y "$HEIGHT" --resolution "$DPI" --button-controlled=yes
+  else
+    scanimage --device pixma:04A91912_429479 --format=png --output-file "$OUT" -x "$WIDTH" -y "$HEIGHT" --resolution "$DPI" --button-controlled=yes
+  fi
+}
+
+autocrop() {
+  [ $# -ge 1 ] || exit 1
+  TMP=`mktemp`
+  ORIG="$1"
+  INFO=`convert "${ORIG}" -virtual-pixel edge -blur 0x15 -fuzz 5% -trim +repage -format '%[fx:w]x%[fx:h]+%[fx:page.x]+%[fx:page.y]' info:`
+  convert "${ORIG}" -crop "$INFO" +repage ${TMP}
+  mv "${TMP}" "${ORIG}"
+}
+
+ctrl_c() {
+  exit 0
+}
+
+scan_loop() {
+  if [ -z "${2}" ]; then
+    echo "Press scanner button to scan each image at "${1:-300dpi}". (auto-crop enabled)" >&2
+  else
+    echo "Press scanner button to scan each image at "${1:-300dpi}". (manual size disabled auto-crop)" >&2
+  fi
+  for x in {001..999}; do
+    [ -s "${x}.png" ] || { 
+      scan "${x}.png" "$@"
+      if [ -z "${2}" ]; then
+        autocrop "${x}.png" 
+      fi
+      echo "Press scanner button to scan next image" >&2
+      # beep # feel free to enable, all beeps are disabled on my system anyway.
+    }
+  done
+}
+
+if [ "$1" == "-h" ]; then
+  echo "Usage: scan-lide [DPI] [WIDTH-MM] [HEIGHT-MM]"
+  echo "   ex  scan-lide 600dpi 195 155 # (leuchtterm size)"
+  exit 0
+fi
+scan_loop "$@"
