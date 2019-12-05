@@ -245,7 +245,9 @@ Prints a file remotely, or prints from stdin if no file is given. Will not work 
 prng
 ---
 Generate a bunch of pseudorandom data. Useful for data integrity tests of storage.
+
 Usage / examples: 
+
     sudo prng test-usb BLOCKDEVICE
     prng stream SEED | head -c 100 >some_file
     prng stdout SEED [SIZE] | prng verify stdin SEED [SIZE]
