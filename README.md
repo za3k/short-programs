@@ -29,6 +29,10 @@ battery
 ---
 Displays the current battery percentage as a short string for displays
 
+budget_summary
+---
+Helper for za3k only. Summarizes budget categories typed in from my logbook
+
 changed-files
 ---
 In Arch Linux, lists the config files which have been altered from the default.
@@ -315,6 +319,14 @@ Example:
 setop
 ---
 Command-line program for performing basic set operations on lines in files. `comm` can be used for some of this on sorted files but it's a little stronger.
+
+sleep_summary
+---
+Gives a summary of average and standard deviation of sleep times.
+
+Example:
+
+    sleep_summary 8h40m 5h20m 7h
 
 static-ip
 ---

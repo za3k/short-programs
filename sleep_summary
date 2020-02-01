@@ -1,0 +1,37 @@
+#!/bin/python3
+import sys, statistics, math, re
+
+def usage():
+    print("Usage: sleep_summary DAY...")
+    print("DAY format should be one of:")
+    print("  8h")
+    print("  8.5h")
+    print("  8h30m")
+
+if len(sys.argv)<=1:
+    usage()
+    exit(0)
+
+times_m = []
+for arg in sys.argv[1:]:
+    m1 = re.fullmatch('(\d+(?:\.\d+)?)h', arg) # hour or fractional hour
+    m2 = re.fullmatch('(\d\d?)h(\d\d?)m', arg) # hours and minutes
+    if m1:
+        hours = float(m1.group(1))
+        times_m.append(hours*60)
+    elif m2:
+        hours, minutes = int(m2.group(1)), int(m2.group(2))
+        times_m.append(hours*60+minutes)
+    else:
+        print("Unexpected argument format: {}".format(arg))
+        print()
+        usage()
+        exit(1)
+avg_m = statistics.mean(times_m)
+stddev_m = math.sqrt(statistics.variance(times_m))
+avg_h, stddev_h = avg_m/60, stddev_m/60
+
+print("{} days".format(len(times_m)))
+print("Mean {}m, stddev {}m".format(round(avg_m,0), round(stddev_m, 0)))
+print("Mean {}h, stddev {}h".format(round(avg_h,1), round(stddev_h, 1)))
+print("Mean {}h{}m, stddev {}h".format(int(avg_m//60), round(avg_m%60), round(stddev_h, 1)))
