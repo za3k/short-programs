@@ -1,0 +1,20 @@
+#!/bin/sh
+TMPFILE=`mktemp`
+BOOK=$(ssh germinate "/home/zachary/bin/random_book" epub pdf txt html mobi)
+scp -q germinate:$BOOK "$TMPFILE"
+echo "$BOOK"
+case $BOOK in
+  *.pdf)
+  evince "$TMPFILE" >/dev/null 2>/dev/null
+  ;;
+  *.html)
+  w3m -T text/html "$TMPFILE"
+  ;;
+  *.txt)
+  less "$TMPFILE"
+  ;;
+  *.epub|*.mobi)
+  cr3 "$TMPFILE" >/dev/null 2>/dev/null
+  ;;
+esac
+rm "$TMPFILE"

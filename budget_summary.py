@@ -1,9 +1,12 @@
 #!/usr/bin/python3
-import datetime
-import re
+import datetime, re, sys
 
-current_date=str(datetime.date.today())
-with open("blog2.za3k.com/_posts/{}-weekly-review.md".format(current_date), "r") as f:
+if len(sys.argv) > 1:
+    fp = sys.argv[1]
+else:
+    current_date=str(datetime.date.today())
+    fp = "/home/zachary/blog2.za3k.com/_posts/{}-weekly-review.md".format(current_date)
+with open(fp, "r") as f:
     lines = list(line for line in f)
 
 budget_start = re.compile("^\\| Date")
@@ -19,9 +22,14 @@ lines = []
 for line in budget[2:]:
     date, place, amount, category, thing = [x.strip() for x in line.split("|")[1:]]
     lines.append((float(amount), category))
-print("{: <12} {}".format("Total:", sum(amount for (amount, category) in lines)))
-print("{: <12} {}".format("Total (no rent):", sum(amount for (amount, category) in lines if category != "Rent")))
+print("{: <12} {:.2f}".format("Total:", sum(amount for (amount, category) in lines)))
+print("{: <12} {:.2f}".format("Total (no rent):", sum(amount for (amount, category) in lines if category != "Rent")))
 categories = sorted(set(category for (amount, category) in lines))
 print()
+OTHER = ("Food", "Grocery", "Luxury")
 for category in categories:
-    print("{: <12} {}".format(category+":", sum(amount for (amount, c) in lines if category == c)))
+    if category not in OTHER:
+        print("{: <12} {:.2f}".format(category+":", sum(amount for (amount, c) in lines if category == c)))
+print("{: <12} {:.2f}".format("Other"+":", sum(amount for (amount, c) in lines if c in OTHER)))
+for category in OTHER:
+    print("  {: <12} {:.2f}".format(category+":", sum(amount for (amount, c) in lines if category == c)))

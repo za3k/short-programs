@@ -1,0 +1,16 @@
+#!/bin/bash
+ONERNG=/dev/ttyACM0
+t=onerng.out
+
+stty -F $ONERNG raw -echo clocal -crtscts
+echo "cmd0" >$ONERNG            # standard noise
+echo "cmdO" >$ONERNG            # turn it on
+stty -F $ONERNG raw -echo clocal -crtscts
+gone() {
+  echo "cmdo" >$ONERNG            # turn it off
+  echo "cmd4" >$ONERNG            # turn off noise gathering
+  echo "cmdw" >$ONERNG            # flush entropy pool
+}
+trap gone EXIT SIGINT SIGTERM SIGHUP
+dd if=$ONERNG iflag=fullblock bs=1k "$@"
+exit 0

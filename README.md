@@ -207,6 +207,10 @@ This allows for fast startup, by executing a tmux configuration file as a progra
 ---
 Play randomly-generated noise through the speakers
 
+onerng
+---
+Outputs the (raw) random bytes from an OneRNG hardware device
+
 owns?
 ---
 Checks which Arch Linux package owns a command
@@ -363,3 +367,11 @@ Counts the number of words in a file or stream.
 xadom
 ---
 Runs adom in a fixed-geometry window (because window geometry affects gameplay)
+
+xor
+---
+Takes the bitwise xor of the given files (or infinite streams), extending all files to the longest length with zeros.
+
+Usage:
+
+    xor FILE1 FILE2 [FILE3...]
