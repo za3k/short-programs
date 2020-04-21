@@ -374,4 +374,5 @@ Takes the bitwise xor of the given files (or infinite streams), extending all fi
 
 Usage:
 
-    xor FILE1 FILE2 [FILE3...]
+    xor [--same-size] FILE1 FILE2 [FILE3...]
+    --same-size,    returns nonzero and prints an error message if not all files are the same length
