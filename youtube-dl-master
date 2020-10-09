@@ -1,0 +1,69 @@
+#!/bin/bash
+usage() {
+    echo "Usage: youtube-dl-master MASTER-DIRECTORY [-t TEMPLATE] -- (URLS | --batch-file FILE)"
+    echo "{MASTER-DIRECTORY}/cookies.txt will be used if present to download"
+    echo "{MASTER-DIRECTORY}/ARCHIVE will be used if present to avoid duplicate downloads"
+}
+
+TEMPLATE="%(title)s-%(id)s.%(ext)s"
+if [ $# -gt 0 ]; then
+    DIR="$1"; shift
+    if [ \! -e "$DIR" ]; then
+        echo "Directory does not exist: $DIR" >/dev/stderr
+        exit 2
+    elif [ \! -d "$DIR" ]; then
+        echo "Not a regular directory: $DIR" >/dev/stderr
+        exit 2
+    fi
+else
+    usage >/dev/stderr && exit 1
+fi
+optionsArr=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+    -t)
+        shift; TEMPLATE="$1"; shift
+        ;;
+    --)
+        shift; break
+        ;;
+    *)
+        optionsArr+=("$1"); shift
+        ;;
+    esac
+done
+if [ $# -le 0 ]; then
+    usage >/dev/stderr && exit 1
+fi
+
+ARCHIVE="$DIR"/ARCHIVE
+if [ -f "$ARCHIVE" ]; then
+    optionsArr+=("--download-archive" "$ARCHIVE")
+fi
+COOKIES="$DIR"/cookies.txt
+if [ -f "$COOKIES" ]; then
+    optionsArr+=("--cookies" "$COOKIES")
+fi
+
+MASTER_FORMAT="$DIR/youtube_%(id)s.%(ext)s"
+
+optionsArr+=("--add-metadata" "--all-subs" "--embed-subs")
+
+#set -x
+youtube-dl -o "$MASTER_FORMAT||||$TEMPLATE|||||%(id)s" --skip-download -s --get-filename "${optionsArr[@]}" "$@" | while read line; do
+    id=${line#*|||||}
+    line2=${line%|||||*}
+    master=${line2%||||*}
+    final=${line2#*||||}
+    #echo "$master" "BLAH" "$final" BLAH "$id"
+    if [ \! -f "$master" ]; then
+        youtube-dl -o "$MASTER_FORMAT" "${optionsArr[@]}" -- "$id"
+    fi
+    if [ -f "$master" ]; then
+        if [ \! -f "$final" ]; then
+            mkdir -p "$(dirname "$final")"
+            ln "$master" "$final"
+        fi
+    fi
+    # Figure out how to save metadata json as a file?
+done

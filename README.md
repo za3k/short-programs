@@ -376,3 +376,16 @@ Usage:
 
     xor [--same-size] FILE1 FILE2 [FILE3...]
     --same-size,    returns nonzero and prints an error message if not all files are the same length
+
+youtube-dl-master
+---
+Download a youtube file to a 'master' directory, and also to the place specified. Avoids multiple downloads by checking the 'master' directory first. 
+
+Intent is to allow changing the filename format, allowing multiple downloads etc without worrying about duplicates filling up space.
+
+Usage: 
+
+    youtube-dl-master MASTER-DIRECTORY [-t TEMPLATE] -- URLS
+    youtube-dl-master MASTER-DIRECTORY [-t TEMPLATE] -- --batch-file FILE
+
+{MASTER-DIRECTORY}/cookies.txt will be used if present

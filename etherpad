@@ -14,6 +14,7 @@ if ($cmd eq "put") {
     $text = uri_escape($text);
 	my $pad=shift or join("",map { ("a".."z")[rand 26] } 1..8);
 	my $create_url="$server/api/1/createPad?apikey=$apikey&padID=$pad&text=$text";
+    print "$create_url\n";
 	if (!system("curl --request GET \"$create_url\" | grep \"does already\"")) {
 		my $update_url="$server/api/1/setText?apikey=$apikey&padID=$pad&text=$text";
 		exec("curl --request GET \"$update_url\"")

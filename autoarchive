@@ -1,0 +1,5 @@
+#!/bin/bash
+for x in "$@"; do
+    DATE=`\date -r "$x" "+%Y-%m-%d"`
+    mv -i "$x" /home/zachary/documents/autoarchive/"$DATE.$x"
+done

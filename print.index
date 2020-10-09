@@ -7,4 +7,4 @@ else
     FILE="$1"
 fi
 set -x
-scp "$FILE" avalanche:/printme.index/.
+cat "$FILE" | ssh pi-printer:lp
