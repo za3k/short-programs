@@ -74,6 +74,10 @@ deshebang
 ---
 Usage: `#!/usr/bin/env deshebang` at the top of a file, makes that file self-printing.
 
+dfa2regex.py
+---
+Needs to be hand-edited. Makes a regex out of any DFA.
+
 dzen-clock
 ---
 Make a small clock at the bottom of the screen
