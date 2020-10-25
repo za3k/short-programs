@@ -61,6 +61,12 @@ create-github-repo
 ---
 Usage: `create-github-repo NAME DESCRIPTION`
 
+cryptogram.py
+---
+Usage: `cryptogram.py "MIH WAIHXS TFBFL OF WHLRLTWFS QAFY WIKFIYF CLFECW MIH QTCA LFWRFJC, MIH WAIHXS FVRFJC TC."`
+
+Interactive cryptogram solver.
+
 decolorize
 ---
 Strips ANSI color codes out of a stream
