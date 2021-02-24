@@ -1,0 +1,2 @@
+#!/bin/sh
+paste -sd+ - | bc

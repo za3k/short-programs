@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+import random, re, sys
+s = "".join(sys.argv[1:]).replace(" ", "")
+
+REGEX = "(\d*)d(\d+)([-+]\d+)?"
+m = re.match(REGEX, s)
+if m:
+    dice, sides, modifier = m.group(1), m.group(2), m.group(3)
+    if dice:
+        dice = int(dice)
+    else:
+        dice = 1
+    sides = int(sides)
+    if modifier and modifier.startswith("+"):
+        modifier = int(modifier[1:])
+    elif modifier and modifier.startswith("-"):
+        modifier = int(modifier)
+    else:
+        modifier = 0
+    result = modifier
+    for i in range(sides):
+        result += random.randint(1, sides)
+    if modifier >= 0:
+        s = "{}d{}+{}".format(dice, sides, modifier)
+    else:
+        s = "{}d{}{}".format(dice, sides, modifier)
+    print(s, "=", result)
+else:
+    print(s, "INVALID")

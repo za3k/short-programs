@@ -181,6 +181,16 @@ lwjgl-fix
 ---
 On Arch Linux, fix lwjgl.jar in minecraft
 
+math
+---
+CLI calculator. Outputs the result of simple math expresisons. Example:
+
+    math 2+2
+
+Outputs:
+
+    2+2 = 4
+
 markov
 ---
 Markov-chain input on a per-word basis
@@ -292,6 +302,18 @@ retry
 ---
 Retry a command 5 times or until it succeeds
 
+roll
+---
+Rolls D&D dice.
+
+Usage:
+
+    roll "d6 + 4"
+
+Output:
+
+    1d6+4 = 8
+
 rtmux
 ---
 
@@ -345,6 +367,10 @@ Example:
 static-ip
 ---
 Set up a static ip on linux
+
+sum
+---
+Adds a list of numbers, one per line.
 
 tag_images
 ---
