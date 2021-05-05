@@ -1,0 +1,343 @@
+#!/usr/bin/env python3
+import random
+# Dwarf names stolen from https://www.fantasynamegenerators.com/dwarf_names.php
+# Elf names stolen from https://www.fantasynamegenerators.com/elf_names.php
+# Orc names stolen from https://www.fantasynamegenerators.com/orc_names.php
+# Human last_names stolen from https://www.fantasynamegenerators.com/fantasy-last_names.php
+# Half-elf names stolen from https://www.fantasynamegenerators.com/half-elf-names.php
+# SKIPPED Half orc from https://www.fantasynamegenerators.com/half-orc-names.php, too complicated
+# Human names stolen from https://www.fantasynamegenerators.com/dnd-human-names.php
+
+class Distribution():
+    def __init__(self, array):
+        self.array = array
+    def __str__(self):
+        return self.sample()
+    def __add__(self, other):
+        if isinstance(other, str):
+            return Distribution([e+other for e in self.array])
+        elif isinstance(other, Distribution):
+            return self + str(other)
+        else :
+            return NotImplemented
+    def sample(self):
+        return random.choice(self.array)
+    def nonempty(self):
+        return Distribution([e for e in self.array if e])
+def sampled(f):
+    def inner_f(*args, **kw_args):
+        r = f(*args, **kw_args)
+        if isinstance(r, Distribution):
+            return r.sample()
+        else:
+            return r
+    return inner_f
+
+dwarf_male1=["A","Ara","Alfo","Bari","Be","Bo","Bha","Bu","Ba","Bra","Bro","Brou","Bru","Da","Dalo","Dare","De","Dhu","Dho","Do","Dora","Dwo","Dou","Duri","Du","El","Eri","Fi","Fo","Fo","Ga","Gi","Gla","Glori","Go","Gra","Gro","Groo","Gru","Grou","Ha","Ha","He","He","Ho","Hou","Hu","Ja","Jo","Ka","Khe","Khu","Khou","Ko","Ku","Ki","Kra","Kro","Lo","Lu","Lo","Ma","Mo","Mu","Na","No","Nu","Nora","Nura","Ne","No","O","Ori","Rei","Ra","Ru","Sa","Si","Sna","Sko","Ska","Stro","The","Thi","Tho","Thra","Tha","Tore","Tha","Thra","Thro","Thu","Tu","U","Umi","Va","Vo","Whu","We","Wera","Yu","Yo","Ya"]
+dwarf_male2=["b","br","dd","d","dr","dm","dgr","f","fr","gr","gg","gh","gn","k","kh","kgr","kdr","kk","kh","kr","l","lg","lgr","ldr","lm","md","mn","m","mm","mr","n","nd","ndr","ngr","nm","r","rr","rgr","rdr","rb","rg","rn","rh","rd","rm","rs","rf","s","ss","sdr","sgr","st","str","t","tr","tm","th","tdr","tgr","v","vr","z","zm","zn","zz"]
+dwarf_male3=["ac","aic","aec","ec","eac","ic","oc","oic","ouc","ack","aeck","eck","eack","ick","ock","oick","ouck","uck","uc","ad","aed","ed","ead","id","od","oid","oud","ud","uid","ag","aeg","eg","eag","ig","og","oug","ug","ak","aek","ek","eak","ik","ok","oki","uk","uik","ouk","uki","al","ael","el","eal","il","ol","oli","olin","olim","olir","oul","ul","uli","ulim","ulir","uil","am","ami","amli","amri","aem","em","eam","im","om","omli","omri","omi","oum","um","umi","umir","umin","umli","umlir","umlin","umri","an","aen","en","ean","in","on","onlim","onlir","oun","un","unli","unri","ar","arlum","arlun","arlug","arlig","aer","er","erlum","erlun","erlug","erlig","ear","ir","irlum","irlun","or","orli","orlim","orlum","orlun","orlig","orlug","oir","our","ur","uri","urim","urum","us","as","ous","aes","eas","at","atir","atum","atin","aet","et","eat","it","ot","otir","atin","otum","out","ut","ath","aeth","eth","eath","ith","oth","outh","uth"]
+dwarf_female1=["A","Ara","Alfo","Bari","Be","Bo","Bha","Bu","Ba","Bra","Bro","Brou","Bru","Da","Dalo","Dare","De","Dhu","Dho","Do","Dora","Dwo","Dou","Duri","Du","El","Eri","Fi","Fo","Fo","Ga","Gi","Gla","Glori","Go","Gra","Gro","Groo","Gru","Grou","Ha","Ha","He","He","Ho","Hou","Hu","Ja","Jo","Ka","Khe","Khu","Khou","Ko","Ku","Ki","Kra","Kro","Lo","Lu","Lo","Ma","Mo","Mu","Na","No","Nu","Nora","Nura","Ne","No","O","Ori","Rei","Ra","Ru","Sa","Si","Sna","Sko","Ska","Stro","The","Thi","Tho","Thra","Tha","Tore","Tha","Thra","Thro","Thu","Tu","U","Umi","Va","Vo","Whu","We","Wera","Yu","Yo","Ya"]
+dwarf_female2=["b","br","dd","d","dr","dm","dgr","dw","f","fr","gr","gg","gh","gn","k","kh","kgr","kdr","kk","kw","kh","kr","l","lg","lgr","ldr","lm","md","mw","mn","m","mm","mr","n","nd","ndr","nw","ngr","nm","r","rr","rgr","rdr","rb","rg","rn","rh","rd","rm","rs","rf","s","ss","sdr","sgr","st","str","t","tr","tm","th","tdr","tgr","v","vr","w","z","zm","zn","zz"]
+dwarf_female3=["abelle","aebelle","ebelle","ibelle","obelle","ubelle","alyn","aelyn","elyn","ealyn","ilyn","olyn","oulyn","ulyn","uilyn","alynn","aelynn","elynn","ealynn","ilynn","olynn","oulynn","ulynn","uilynn","abelyn","aebelyn","ebelyn","eabelyn","ibelyn","obelyn","oubelyn","ubelyn","uibelyn","abelynn","aebelynn","ebelynn","eabelynn","ibelynn","obelynn","oubelynn","ubelynn","uibelyn","anelyn","aenelyn","enelyn","eanelyn","inelyn","onelyn","ounelyn","unelyn","uinelyn","anelynn","aenelynn","enelynn","eanelynn","inelynn","onelynn","ounelynn","unelynn","uinelynn","agit","aegit","egit","eagit","igit","ogit","ugit","uigit","agith","aegith","egith","eagith","igith","ogith","ugith","uigith","irgit","irgith","uirgit","uirgith","airgit","airgith","arika","aerika","erika","earika","irika","orika","urika","atain","aetain","etain","eatain","itain","otain","utain","ataine","aetaine","etaine","eataine","itaine","otaine","utaine","ahilda","aehilda","ehilda","eahilda","ohilda","ihilda","uhilda","ahulda","aehulda","ehulda","eahulda","ohulda","ihulda","uhulda","agar","aegar","egar","eagar","igar","ogar","ugar","agaer","egaer","igaer","ogaer","ugaer","atrud","aetrud","etrud","eatrud","itrud","otrud","utrud","atrude","aetrude","etrude","eatrude","itrude","otrude","utrude","ada","aeda","eda","eada","ida","oda","uda","alda","aelda","elda","ealda","ilda","olda","oulda","ulda","alin","aelin","elin","ealin","ilin","olin","oulin","ulin","aline","aeline","eline","ealine","iline","oline","ouline","uline","atalin","aetalin","etalin","eatalin","italin","otalin","outalin","utalin","atalyn","aetalyn","etalyn","eatalyn","italyn","otalyn","outalyn","utalyn","atelin","aetelin","etelin","eatelin","itelin","otelin","outelin","utelin","atelyn","aetelyn","etelyn","eatelyn","itelyn","otelyn","outelyn","utelyn","angrid","aengrid","engrid","eangrid","ingrid","ongrid","oungrid","ungrid","ani","aeni","eni","eani","ini","oni","ouni","uni","ana","aena","ena","eana","ina","ona","ouna","una","alsia","aelsia","elsia","ealsia","ilsia","olsia","oulsia","ulsia","ala","aela","ela","eala","ila","ola","oula","ula","abella","aebella","ebella","eabella","ibella","obella","oubella","ubella","abela","aebela","ebela","eabela","ibela","obela","oubela","ubela","astr","aestr","estr","eastr","istr","ostr","oustr","ustr","abo","aebo","ebo","eabo","ibo","obo","oubo","ubo","abena","aebena","ebena","eabena","ibena","obena","oubena","ubena","abera","aebera","ebera","eabera","ibera","obera","oubera","ubera","adeth","aedeth","edeth","eadeth","ideth","odeth","oudeth","udeth","adrid","aedrid","edrid","eadrid","idrid","odrid","oudrid","udrid","abyrn","aebyrn","ebyrn","eabyrn","ibyrn","obyrn","oubyrn","ubyrn","agrett","aegrett","egrett","eagrett","igrett","ogrett","ougrett","ugrett","agret","aegret","egret","eagret","igret","ogret","ougret","ugret","asli","aesli","esli","easli","isli","osli","ousli","usli","ahilda","aehilda","ehilda","eahilda","ihilda","ohilda","ouhilda","uhilda","ahilde","aehilde","ehilde","eahilde","ihilde","ohilde","ouhilde","uhilde","aginn","aeginn","eginn","eaginn","iginn","oginn","ouginn","uginn","amora","aemora","emora","eamora","imora","omora","oumora","umora","alydd","aelydd","elydd","ealydd","ilydd","olydd","oulydd","ulydd","akara","aekara","ekara","eakara","ikara","okara","oukara","ukara","aren","aeren","eren","earen","iren","oren","ouren","uren","arra","aerra","erra","earra","irra","orra","ourra","urra","are","aere","ere","eare","ire","ore","oure","ure","awynn","aewynn","ewynn","eawynn","iwynn","owynn","ouwynn","uwynn","atryd","aetryd","etryd","eatryd","itryd","otryd","outryd","utryd","athra","aethra","ethra","eathra","ithra","othra","outhra","uthra","aserd","aeserd","eserd","easerd","iserd","oserd","ouserd","userd","tryd"]
+dwarf_last1=["Ale","Amber","Anvil","Ash","Axe","Barbed","Barrel","Battle","Beast","Bone","Beryl","Bitter","Black","Blazing","Blessed","Blood","Blunt","Bone","Bottle","Boulder","Brew","Brick","Bright","Bristle","Broad","Bronze","Brown","Cave","Cask","Chain","Crag","Chaos","Coal","Coin","Copper","Dark","Deep","Dim","Dragon","Drake","Dusk","Earth","Ember","Fiery","Flint","Flask","Flint","Flat","Forge","Frost","Giant","Gold","Golden","Granite","Gravel","Gray","Great","Grey","Grim","Grumble","Hammer","Hard","Heavy","Hill","Honor","Horn","Ice","Ingot","Iron","Jade","Keg","Kobold","Krag","Lead","Large","Lava","Leather","Light","Long","Marble","Magma","Merry","Metal","Mithril","Mine","Mountain","Mud","Night","Noble","Oak","Oaken","Onyx","Opal","Ore","Orc","Plate","Pebble","Red","Rune","Ruby","Sapphire","Shadow","Shatter","Smelt","Silver","Snow","Steel","Storm","Strong","Troll","Thunder","Twilight","Treasure","Under","War","Warm","Whit","Wind","Wold","Wraith","Wyvern"]
+dwarf_last2=["arm","armour","axe","back","bane","beard","basher","belly","belt","bender","blade","born","bow","braid","braids","branch","brand","breaker","brew","brewer","bringer","brow","buckle","buster","chest","chin","cloak","coat","delver","digger","foot","fall","fury","finger","flayer","feet","forge","forged","grog","grip","guard","gut","granite","hand","head","heart","helm","hide","hood","horn","jaw","mace","mail","maker","mantle","mane","master","maul","miner","pike","rock","river","shield","shaper","sword","shoulder","stone","spine","sunder","thane","toe","tank","view"]
+elf_first_name_female=["Abarat","Adamar","Adorellan","Adresin","Aelrindel","Aerendyl","Aeson","Afamrail","Agandaur","Agis","Aias","Aiduin","Aien","Ailas","Ailduin","Ailen","Ailluin","Ailmar","Ailmer","Ailmon","Ailre","Ailred","Ailuin","Ailwin","Aimar","Aimer","Aimon","Airdan","Aire","Aired","Aithlin","Aiwin","Akkar","Alabyran","Alaion","Alas","Alen","Alinar","Alluin","Almar","Almer","Almon","Alok","Alosrin","Alre","Alred","Althidon","Alwin","Amrynn","Andrathath","Anfalen","Anlyth","Aolis","Aquilan","Arathorn","Arbane","Arbelladon","Ardreth","Ardryll","Arel","Arlen","Arun","Ascal","Athtar","Aubron","Aumanas","Aumrauth","Avourel","Ayas","Ayduin","Ayen","Ayluin","Aymar","Aymer","Aymon","Ayre","Ayred","Aywin","Belanor","Beldroth","Bellas","Beluar","Biafyndar","Bialaer","Braern","Cailu","Camus","Castien","Chathanglas","Cohnal","Conall","Connak","Cornaith","Corym","Cyran","Dain","Dakath","Dalyor","Darcassan","Darfin","Darthoridan","Darunia","Deldrach","Delmuth","Delsaran","Devdan","Drannor","Druindar","Durlan","Durothil","Dyffros","Edwyrd","Edyrm","Ehlark","Ehrendil","Eilauver","Elaith","Elandorr","Elas","Elashor","Elauthin","Eldaerenth","Eldar","Eldrin","Elduin","Elen","Elephon","Elidyr","Elion","Elkhazel","Ellisar","Elluin","Elmar","Elmer","Elmon","Elnaril","Elorshin","Elpharae","Elre","Elred","Eltaor","Elwin","Elyon","Emmyth","Entrydal","Erendriel","Eriladar","Erlan","Erlareo","Erlathan","Eroan","Erolith","Estelar","Ethlando","Ettrian","Evindal","Faelar","Faelyn","Faeranduil","Falael","Felaern","Fenian","Feno","Feyrith","Fhaornik","Filarion","Filvendor","Filverel","Flardryn","Flinar","Folas","Folduin","Folen","Folluin","Folmar","Folmer","Folmon","Folre","Folred","Folwin","Fylson","Gaeleath","Gaelin","Galaeron","Galan","Galather","Ganamede","Gantar","Garrik","Garynnon","Giullis","Glanduil","Glarald","Glorandal","Goras","Gorduin","Goren","Gorluin","Gormar","Gormer","Gormon","Gorre","Gorred","Gorwin","Grathgor","Haemir","Hagas","Hagduin","Hagen","Hagluin","Hagmar","Hagmer","Hagre","Hagred","Hagwin","Haladavar","Halafarin","Halamar","Haldir","Halflar","Halueth","Halueve","Hamon","Haryk","Hastios","Hatharal","Horith","Hubys","Iefyr","Ievis","Ilbryen","Ilimitar","Iliphar","Illianaro","Illithor","Illitran","Ilphas","Ilrune","Ilthuryn","Ilvisar","Inchel","Inialos","Intevar","Iolas","Iolrath","Itham","Ivaran","Ivasaar","Iymbryl","Iyrandrar","Jandar","Jannalor","Jaonos","Jassin","Jhaan","Jhaartael","Jhaeros","Jonik","Jorildyn","Kailu","Katar","Katyr","Kellam","Kelvhan","Kendel","Kerym","Keryth","Kesefeon","Kharis","Khatar","Khidell","Khiiral","Khilseith","Khuumal","Khyrmin","Kieran","Kiirion","Kindroth","Kivessin","Klaern","Kolvar","Kuskyn","Kymil","Kyrenic","Kyrtaar","Laeroth","Lafarallin","Laiex","Lamruil","Larongar","Larrel","Lathai","Lathlaeril","Lhoris","Lianthorn","Llarm","Llewel","Lorsan","Luirlan","Luthais","Luvon","Lyari","Lyklor","Lysanthir","Maeral","Maiele","Malgath","Malon","Maradeim","Marikoth","Marlevaur","Melandrach","Merellien","Merith","Methild","Mhaenal","Mitalar","Mihangyl","Miirphys","Mirthal","Mlartlar","Mnementh","Morthil","Myrdin","Myriil","Myrin","Mythanar","Naertho","Naeryndam","Naesala","Narbeth","Nardual","Nasir","Navarre","Nelaeryn","Neldor","Neremyn","Nesterin","Nevarth","Nhamashal","Nieven","Nindrol","Ninleyn","Ninthalor","Niossae","Nuvian","Nylian","Nym","Nyvorlas","Olaurae","Onas","Oncith","Onvyr","Orist","Ornthalas","Orrian","Orym","Otaehryn","Othorion","Paeral","Paeris","Pelleas","Phaendar","Pharom","Phraan","Pirphal","Purtham","Pyrravyn","Pywaln","Qildor","Raeran","Raibyn","Ralnor","Ranaeril","Rathal","Reluraun","Reluvethel","Rennyn","Reptar","Respen","Revalor","Rhalyf","Rhangyl","Rhistel","Rhothomir","Rhys","Rilitar","Riluaneth","Rolim","Rothilion","Ruehnar","Ruith","Ruvaen","Ruven","Ruvyn","Rychell","Rydel","Ryfon","Ryo","Ryul","Saelethil","Saevel","Saleh","Samblar","Sanev","Scalanis","Selanar","Sharian","Shaundyl","Shyrrik","Sihnion","Silvyr","Simimar","Sinaht","Siveril","Sontar","Sudryal","Sundamar","Sylvar","Sythaeryn","Taegen","Taenaran","Taeral","Taerentym","Taleasin","Tamnaeth","Tanithil","Tannatar","Tannivh","Tannyll","Tanyl","Tanyth","Taranath","Tarathiel","Taredd","Tarron","Tasar","Tassarion","Tathaln","Thalanil","Thallan","Theodas","Theodemar","Theoden","Theodluin","Theodmer","Theodmon","Theodre","Theodred","Thuridan","Tiarsus","Tolith","Tordynnar","Toross","Traeliorn","Travaran","Triandal","Ualiar","Uevareth","Uldreyin","Urdusin","Usunaar","Uthorim","Vaalyun","Vaeril","Vamir","Varitan","Velethuil","Venali","Vesryn","Vesstan","Virion","Volodar","Voron","Vuduin","Vulas","Vulen","Vulluin","Vulmar","Vulmer","Vulmon","Vulre","Vulred","Vulwin","Wirenth","Wistari","Wyn","Wyninn","Wyrran","Yalathanil","Yesanith","Yhendorn","Ylyndar","Zaos","Zelphar","Zeno","Zhoron"]
+elf_first_name_male = ["Aelrie","Aelua","Aelynthi","Aenwyn","Aerilaya","Aerith","Ahrendue","Ahshala","Aila","Alagossa","Alais","Alanis","Alasse","Alavara","Alea","Aleesia","Alenia","Aleratha","Allannia","Allisa","Alloralla","Allynna","Almedha","Almithara","Alvaerelle","Alyndra","Amara","Amaranthae","Amarille","Amedee","Ameria","Amisra","Amnestria","Amra","Anarzee","Aneirin","Anhaern","Annallee","Ara","Arasne","Aravae","Arcaena","Ariawyn","Arilemna","Arlayna","Arnarra","Arryn","Arthion","Artin","Ashera","Ashryn","Aurae","Ava","Axilya","Ayda","Ayla","Azariah","Baerinda","Bellaluna","Bemere","Bonaluria","Burolia","Caeda","Caerthynna","Calarel","Celaena","Cellica","Chaenath","Chalia","Chalsarda","Chamylla","Chandrelle","Chasianna","Ciliren","Ciradyl","Cithrel","Clanire","Cremia","Daethie","Daratrine","Darshee","Darunia","Dasyra","Delimira","Delsanra","Dessielle","Deulara","Dilya","Dirue","Ealirel","Ecaeris","Edea","Edraele","Eirina","Elanalue","Elanil","Elasha","Elenaril","Eletha","Elincia","Elisen","Eliyen","Ellarian","Elmyra","Eloimaya","Elora","Elyon","Ena","Enania","Eshenesra","Esiyae","Essaerae","Esta","Falenas","Faraine","Farryn","Faunalyn","Fayeth","Faylen","Fhaertala","Filaurel","Filauria","Fildarae","Finnea","Gaelira","Gaerradh","Gaylia","Geminara","Ghilanna","Glynnii","Gweyir","Gwynnestri","Gylledhia","Haciathra","Haera","Halaema","Halanaestra","Hamalitia","Haramara","Helartha","Holone","Huethea","Hycis","Ialantha","Ikeshia","Ildilyntra","Ilmadia","Ilsevel","Ilyana","Ilyrana","Ilythyrra","Imizael","Immianthe","Imra","Imryll","Ioelena","Irhaal","Isarrel","Isilynor","Ithronel","Itireae","Itylara","Jastira","Jeardra","Jhaerithe","Jhanandra","Jhilsara","Kali","Kasula","Kavrala","Kaylessa","Kaylin","Keenor","Keerla","Keishara","Kenia","Kethryllia","Keya","Kilyn","Kylantha","Kythaela","Laamtora","Laerdya","Lazziar","Leena","Leilatha","Lenna","Lensa","Lethhonel","Lierin","Liluth","Lithoniel","Lixiss","Llamiryl","Llorva","Loreleia","Lura","Lusha","Lusserina","Lyeecia","Lyeneru","Lymseia","Lyndis","Lyra","Lyrei","Lythienne","Madris","Maelyrra","Maeralya","Maescia","Makaela","Malonne","Malruthiia","Mariona","Mathienne","Maylin","Meira","Melarue","Meorise","Merethyl","Merialeth","Meriel","Merlara","Mhoryga","Micaiah","Minuvae","Muelara","Myantha","Mylaela","Mylaerla","Myriani","Myrrh","Nabeora","Naesala","Naevys","Naexi","Nakiasha","Nalaea","Nambra","Namys","Nanthaliene","Neia","Nephinae","Nimeroni","Nimue","Nithenoel","Nithroel","Nuala","Nueleth","Nuovis","Nushala","Nyana","Nylathria","Ochilysse","Omylia","Osonia","Penelo","Phaerille","Phelorna","Phinara","Phyrra","Pyria","Qamara","Radelia","Raenisa","Rallientha","Rania","Ratha","Rathiain","Renestrae","Renna","Rina","Riniya","Rophalin","Rosanhi","Rosaniya","Roshia","Rubarae","Ryllae","Saelihn","Saida","Sakaala","Salihn","Sana","Saphielle","Saria","Sariandi","Sarya","Seldanna","Selphie","Selussa","Shael","Shaerra","Shalaevar","Shalana","Shalendra","Shalheira","Shalia","Shanaera","Shandalar","Shanyrria","Shelara","Shenarah","Sillavana","Sionia","Siora","Siphanien","Siraye","Solana","Soliana","Sorisana","Sumina","Syllia","Sylmare","Symania","Syndra","Syvis","Taenya","Talanashta","Talindra","Tanelia","Tanila","Tanulia","Tarasynora","Tehlarissa","Tephysea","Teriani","Thaciona","Thalia","Thaola","Thasinia","Thessalia","Tialha","Tinesi","Tiriana","Tisha","Tsarra","Tyrael","Ulesse","Umilythe","Uneathen","Urricea","Usamea","Vaeri","Valindra","Vanya","Vasati","Velatha","Verrona","Vestele","Vianola","Viessa","Wynather","Yaereene","Yalanue","Yathanae","Ygannea","Ynaselle","Yralissa","Yrathea","Yrneha","Ysildea","Yumanea","Yunaesa","Zaleria","Zentha","Zestari","Zilyana"]
+elf_last1 = ["Ad","Ae","Ara","Bal","Bei","Bi","Bry","Cai","Car","Chae","Cra","Da","Dae","Dor","Eil","El","Ela","En","Er","Fa","Fae","Far","Fen","Gen","Gil","Glyn","Gre","Hei","Hele","Her","Hola","Ian","Iar","Ili","Ina","Jo","Kea","Kel","Key","Kris","Leo","Lia","Lora","Lu","Mag","Mia","Mira","Mor","Nae","Neri","Nor","Ola","Olo","Oma","Ori","Pa","Per","Pet","Phi","Pres","Qi","Qin","Qui","Ralo","Rava","Rey","Ro","Sar","Sha","Syl","The","Tor","Tra","Tris","Ula","Ume","Uri","Va","Val","Ven","Vir","Waes","Wran","Wyn","Wysa","Xil","Xyr","Yel","Yes","Yin","Ylla","Zin","Zum","Zyl"]
+elf_last2 = ["balar","banise","bella","beros","can","caryn","ceran","cyne","dan","di","dithas","dove","faren","fiel","fina","fir","geiros","gella","golor","gwyn","hana","harice","hice","horn","jeon","jor","jyre","kalyn","kas","kian","krana","lamin","lana","lar","lee","len","leth","lynn","maer","maris","menor","moira","myar","mys","na","nala","nan","neiros","nelis","norin","peiros","petor","phine","phyra","qen","qirelle","quinal","ra","ralei","ran","rel","ren","ric","rie","rieth","ris","ro","rona","rora","roris","salor","sandoral","satra","stina","sys","thana","thyra","toris","tris","tumal","valur","varis","ven","vyre","warin","wenys","wraek","wynn","xalim","xidor","xina","xisys","yarus","ydark","ynore","yra","zana","zeiros","zorwyn","zumin"]
+elf_first_name_neutral = ["Adorellan","Adresin","Aelrindel","Aenwyn","Aerendyl","Aerith","Aien","Ailen","Ailre","Aimer","Aire","Aithlin","Alaion","Alais","Alanis","Alasse","Alosrin","Amra","Amrynn","Aneirin","Anfalen","Anhaern","Anlyth","Arbane","Ardreth","Arel","Ariawyn","Arryn","Arthion","Artin","Ashryn","Aubron","Avourel","Axilya","Ayen","Aymer","Ayre","Aywin","Azariah","Bellas","Bemere","Bialaer","Caeda","Calarel","Chaenath","Ciliren","Ciradyl","Cithrel","Cohnal","Conall","Cornaith","Cyran","Dain","Darunia","Ehlark","Ehrendil","Elaith","Elandorr","Elanil","Elas","Elauthin","Eldaerenth","Eldrin","Elen","Elidyr","Elion","Elisen","Ellisar","Elluin","Elnaril","Elpharae","Elred","Elyon","Emmyth","Erendriel","Eroan","Estelar","Faelyn","Falael","Falenas","Farryn","Felaern","Feno","Filaurel","Filverel","Folen","Folre","Fylson","Gaeleath","Gaelin","Gaerradh","Galan","Goras","Goren","Gweyir","Haemir","Halaema","Halamar","Haldir","Halueth","Halueve","Hamon","Horith","Hycis","Iefyr","Ilbryen","Iliphar","Ilphas","Imizael","Inchel","Irhaal","Isarrel","Isilynor","Ithronel","Ivasaar","Jandar","Jassin","Jhaan","Jorildyn","Kailu","Katar","Keenor","Kelvhan","Kendel","Keryth","Kharis","Khidell","Khiiral","Khyrmin","Kilyn","Kindreth","Kymil","Laeroth","Larrel","Lathlaeril","Lazziar","Lethonel","Lhoris","Lierin","Llewel","Lorsan","Lyari","Lysanthir","Maeral","Maiele","Malon","Malonne","Merellien","Meriel","Merith","Methild","Micaiah","Mirthal","Mnementh","Myrdin","Myriil","Myrin","Myrrh","Naesala","Naevys","Namys","Narbeth","Nasir","Navarre","Nelaeryn","Neremyn","Nesterin","Nhamashal","Nieven","Nithenoel","Nueleth","Nuovis","Nym","Orym","Paeral","Paeris","Pelleas","Phraan","Rathiain","Rennyn","Rhalyf","Riluaneth","Rolim","Ruehnar","Ruvaen","Ruven","Ruvyn","Ryllae","Ryo","Saelethil","Saelihn","Saevel","Saida","Saleh","Sanev","Selanar","Shalaevar","Shandalar","Sharian","Sinaht","Sylmare","Sylvar","Syvis","Taenaran","Taeral","Tamnaeth","Tanathil","Tannatar","Tannyll","Tanyl","Tanyth","Taranth","Tarathiel","Thalanil","Thallan","Tyrael","Uneathen","Vaeril","Vamir","Venali","Virion","Vulen","Vulmar","Vulmer","Vulwin","Wirenth","Wynather","Yesanith","Zeno"]
+
+
+orc_male1=['Ghazat','Abghat','Adgulg','Aghed','Agugh','Aguk','Almthu','Alog','Ambilge','Apaugh','Argha','Argigoth','Argug','Arpigig','Auhgan','Azhug','Bagdud','Baghig','Bahgigoth','Bandagh','Barfu','Bargulg','Baugh','Bidgug','Bildud','Bilge','Bog','Boghat','Bogugh','Borgan','Borug','Braugh','Brougha','Brugagh','Bruigig','Buadagh','Buggug','Builge','Buimghig','Bulgan','Bumhug','Buomaugh','Buordud','Burghed','Buugug','Cabugbu','Cagan','Carguk','Carthurg','Clog','Corgak','Crothu','Cubub','Cukgilug','Curbag','Dabub','Dakgorim','Dakgu','Dalthu','Darfu','Deakgu','Dergu','Derthag','Digdug','Diggu','Dilug','Ditgurat','Dorgarag','Dregu','Dretkag','Drigka','Drikdarok','Drutha','Dudagog','Dugarod','Dugorim','Duiltag','Durbag','Eagungad','Eggha','Eggugat','Egharod','Eghuglat','Eichelberbog','Ekganit','Epkagut','Ergoth','Ertguth','Ewkbanok','Fagdud','Faghig','Fandagh','Farfu','Farghed','Fargigoth','Farod','Faugh','Feldgulg','Fidgug','Filge','Fodagog','Fogugh','Fozhug','Frikug','Frug','Frukag','Fubdagog','Fudhagh','Fupgugh','Furbog','Futgarek','Gaakt','Garekk','Gelub','Gholug','Gilaktug','Ginug','Gnabadug','Gnadug','Gnalurg','Gnarg','Gnarlug','Gnorl','Gnorth','Gnoth','Gnurl','Golag','Golub','Gomatug','Gomoku','Gorgu','Gorlag','Grikug','Grug','Grukag','Grukk','Grung','Gruul','Guag','Gubdagog','Gudhagh','Gug','Gujarek','Gujek','Gujjab','Gulm','Gulrn','Gunaakt','Gunag','Gunug','Gurukk','Guthakug','Guthug','Gutjja','Hagob','Hagu','Hagub','Haguk','Hebub','Hegug','Hibub','Hig','Hogug','Hoknath','Hoknuk','Hokulk','Holkurg','Horknuth','Hrolkug','Hugagug','Hugmug','Hugolm','Ig','Igmut','Ignatz','Ignorg','Igubat','Igug','Igurg','Ikgnath','Ikkath','Inkathu','Inkathurg','Isagubat','Jogug','Jokgagu','Jolagh','Jorgagu','Jregh','Jreghug','Jugag','Jughog','Jughragh','Jukha','Jukkhag','Julakgh','Kabugbu','Kagan','Kaghed','Kahigig','Karfu','Karguk','Karrghed','Karrhig','Karthurg','Kebub','Kegigoth','Kegth','Kerghug','Kertug','Kilug','Klapdud','Klog','Klughig','Knagh','Knaraugh','Knodagh','Knorgh','Knuguk','Knurigig','Kodagog','Kog','Kogan','Komarod','Korgak','Korgulg','Koughat','Kraugug','Krilge','Krothu','Krouthu','Krugbu','Krugorim','Kubub','Kugbu','Kukgilug','Kulgha','Kupgugh','Kurbag','Kurmbag','Laghed','Lamgugh','Mabub','Magdud','Malthu','Marfu','Margulg','Mazhug','Meakgu','Mergigoth','Milug','Mudagog','Mugarod','Mughragh','Mugorim','Murbag','Naghat','Naghig','Naguk','Nahgigoth','Nakgu','Narfu','Nargulg','Narhbub','Narod','Neghed','Nehrakgu','Nildud','Nodagog','Nofhug','Nogugh','Nomgulg','Noogugh','Nugbu','Nughilug','Nulgha','Numhug','Nurbag','Nurghed','Oagungad','Oakgu','Obghat','Oggha','Oggugat','Ogharod','Oghuglat','Oguk','Ohomdud','Ohulhug','Oilug','Okganit','Olaghig','Olaugh','Olmthu','Olodagh','Olog','Omaghed','Ombilge','Omegugh','Omogulg','Omugug','Onog','Onubub','Onugug','Oodagh','Oogorim','Oogugbu','Oomigig','Opathu','Opaugh','Opeghat','Opilge','Opkagut','Opoguk','Oquagan','Orgha','Orgoth','Orgug','Orpigig','Ortguth','Otugbu','Ougha','Ougigoth','Ouhgan','Owkbanok','Paghorim','Pahgigoth','Pahgorim','Pakgu','Parfu','Pargu','Parhbub','Parod','Peghed','Pehrakgu','Pergu','Perthag','Pigdug','Piggu','Pitgurat','Podagog','Pofhug','Pomgulg','Poogugh','Porgarag','Pregu','Pretkag','Prigka','Prikdarok','Prutha','Pughilug','Puiltag','Purbag','Qog','Quadagh','Quilge','Quimghig','Quomaugh','Quordud','Quugug','Raghat','Raguk','Rakgu','Rarfu','Rebub','Rilug','Rodagog','Rogan','Romarod','Routhu','Rugbu','Rugorim','Rurbag','Rurigig','Sabub','Saghig','Sahgigoth','Sahgorim','Sakgu','Salthu','Saraugug','Sarfu','Sargulg','Sarhbub','Sarod','Sbghat','Seakgu','Sguk','Shomdud','Shulhug','Sildud','Silge','Silug','Sinsbog','Slaghig','Slapdud','Slaugh','Slodagh','Slog','Slughig','Smaghed','Smegugh','Smogulg','Snog','Snubub','Snugug','Sodagh','Sog','Sogorim','Sogugbu','Sogugh','Sombilge','Somigig','Sonagh','Sorgulg','Sornaraugh','Soughat','Spathu','Speghat','Spilge','Spoguk','Squagan','Stugbu','Sudagog','Sugarod','Sugbu','Sugha','Sugigoth','Sugorim','Suhgan','Sulgha','Sulmthu','Sumhug','Sunodagh','Sunuguk','Supaugh','Supgugh','Surbag','Surgha','Surghed','Surgug','Surpigig','Tagdud','Taghig','Tandagh','Tarfu','Targhed','Targigoth','Tarod','Taugh','Teldgulg','Tidgug','Tilge','Todagog','Tog','Toghat','Togugh','Torgan','Torug','Tozhug','Traugh','Trilug','Trougha','Trugagh','Truigig','Tuggug','Tulgan','Turbag','Turge','Ug','Ugghra','Uggug','Ughat','Ulgan','Ulmragha','Ulmrougha','Umhra','Umragig','Umruigig','Ungagh','Unrugagh','Urag','Uraugh','Urg','Urgan','Urghat','Urgran','Urlgan','Urmug','Urug','Urulg','Vabugbu','Vagan','Vagrungad','Vagungad','Vakgar','Vakgu','Vakmu','Valthurg','Vambag','Vamugbu','Varbu','Varbuk','Varfu','Vargan','Varguk','Varkgorim','Varthurg','Vegum','Vergu','Verlgu','Verthag','Verthurg','Vetorkag','Vidarok','Vigdolg','Vigdug','Viggu','Viggulm','Viguka','Vitgurat','Vitgut','Vlog','Vlorg','Vorgak','Vorgarag','Vothug','Vregu','Vretkag','Vrigka','Vrikdarok','Vrogak','Vrograg','Vrothu','Vruhag','Vrutha','Vubub','Vugub','Vuiltag','Vukgilug','Vultog','Vulug','Vurbag','Wakgut','Wanug','Wapkagut','Waruk','Wauktug','Wegub','Welub','Wholug','Wilaktug','Wingloug','Winug','Woabadug','Woggha','Woggugat','Wogharod','Woghuglat','Woglug','Wokganit','Womkug','Womrikug','Wonabadug','Worthag','Wraog','Wrug','Wrukag','Wrukaog','Wubdagog','Wudgh','Wudhagh','Wudugog','Wuglat','Wumanok','Wumkbanok','Wurgoth','Wurmha','Wurtguth','Wurthu','Wutgarek','Xaakt','Xago','Xagok','Xagu','Xaguk','Xarlug','Xarpug','Xegug','Xepug','Xig','Xnath','Xnaurl','Xnurl','Xoknath','Xokuk','Xolag','Xolkug','Xomath','Xomkug','Xomoku','Xonoth','Xorag','Xorakk','Xoroku','Xoruk','Xothkug','Xruul','Xuag','Xug','Xugaa','Xugag','Xugagug','Xugar','Xugarf','Xugha','Xugor','Xugug','Xujarek','Xuk','Xulgag','Xunaakt','Xunag','Xunug','Xurek','Xurl','Xurug','Xurukk','Xutag','Xuthakug','Xutjja','Yaghed','Yagnar','Yagnatz','Yahg','Yahigig','Yakgnath','Yakha','Yalakgh','Yargug','Yegigoth','Yegoth','Yerghug','Yerug','Ymafubag','Yokgagu','Yokgu','Yolmar','Yonkathu','Yregh','Yroh','Ysagubar','Yughragh','Yugug','Yukgnath','Yukha','Yulakgh','Yunkathu','Zabghat','Zabub','Zaghig','Zahgigoth','Zahgorim','Zalthu','Zaraugug','Zarfu','Zargulg','Zarhbub','Zarod','Zeakgu','Zguk','Zildud','Zilge','Zilug','Zinsbog','Zlapdud','Zlog','Zlughig','Zodagh','Zog','Zogugbu','Zogugh','Zombilge','Zonagh','Zorfu','Zorgulg','Zorhgigoth','Zornaraugh','Zoughat','Zudagog','Zugarod','Zugbu','Zugorim','Zuhgan','Zulgha','Zulmthu','Zumhug','Zunodagh','Zunuguk','Zupaugh','Zupgugh','Zurbag','Zurgha','Zurghed','Zurgug','Zurpigig','Atulg','Azuk','Bagamul','Bakh','Baronk','Bashag','Bazgulub','Bogakh','Borug','Both','Bugdul','Bugharz','Bugrash','Bugrol','Bumbub','Burul','Dul','Dular','Duluk','Duma','Dumbuk','Dumburz','Dur','Durbul','Durgash','Durz','Durzol','Durzub','Durzum','Garothmuk','Garzonk','Gashna','Ghamborz','Ghamonk','Ghoragdush','Ghorlorz','Glush','Grat','Guarg','Gurak','Khadba','Khagra','Khargol','Koffutto','Largakh','Lorbumol','Lorzub','Lugdum','Lugrub','Lurog','Mash','Matuk','Mauhul','Mazorn','Mol','Morbash','Mug','Mugdul','Muk','Murag','Murkub','Murzol','Muzgonk','Nag','Nar','Nash','Ogrul','Ogrumbu','Olfin','Olumba','Orakh','Rogdul','Shakh','Shamar','Shamob','Shargam','Sharkub','Shat','Shulong','Shura','Shurkul','Shuzug','Snaglak','Snakha','Snat','Ugdumph','Ughash','Ulam','Umug','Uram','Urim','Urul','Urzog','Ushamph','Yadba','Yagak','Yak','Yam','Yambagorn','Yambul','Yargol','Yashnarz','Yatur','Agronak','Bat','Bazur','Brugo','Bogrum','Brag','Brokil','Bugak','Buramog','Burz','Dubok','Dul','Dulfish','Dumag','Dulphumph','Gaturn','Gogron','Gorgo','Graklak','Graman','Grommok','Gul','Hanz','Krognak','Kurdan','Kurz','Rugdumph','Lum','Lumdum','Luronk','Magra','Magub','Maknok','Mug','Orok','Shagol','Shagrol','Shobob','Shum','Ulmug','Urbul','Urul','Ushnar','Uzul','Arob','Balogog','Borkul','Burguk','Dushnamub','Gat','Ghamorz','Ghorbash','Gradba','Grogmar','Grushnag','Gularzob','Kharag','Larek','Lob','Lurbuk','Mahk','Makhel','Abbas','Mauhulakh','Moth','Mul','Mulush','Nagrub','Oglub','Ogol','Olur','Ulag','Umurn','Urag','Yamarz','Yar']
+orc_female1=['Agrob','Badbog','Bashuk','Bogdub','Bugdurash','Bula','Bulak','Bulfim','Bum','Burzob','Burub','Dura','Durgat','Durz','Gashnakh','Ghob','Glasha','Glob','Gluronk','Gonk','Grat','Grazob','Gulfim','Kharzug','Lagakh','Lambug','Lazgar','Mogak','Morn','Murob','Murzush','Nargol','Rolfish','Orbul','Ragash','Rulfim','Shadbak','Shagar','Shagdub','Sharn','Sharog','Shazgob','Shelur','Uloth','Ulumpha','Urzoth','Urzul','Ushat','Ushug','Yazgash','Batul','Borba','Bumph','Homraz','Rogbut','Mazoga','Mog','Mor','Oghash','Rogmesh','Snak','Ugak','Umog','Arob','Atub','Bagrak','Bolar','Bor','Borgakh','Dulug','Garakh','Ghak','Gharol','Ghorza','Gul','Lash','Murbol','Sharamph','Shel','Shufharz','Ugor','Urog','Yotul']
+
+human_last_name1 = ["alpen","amber","ash","autumn","axe","barley","battle","bear","black","blade","blaze","blood","blue","bone","boulder","bright","bronze","burning","cask","chest","cinder","clan","claw","clear","cliff","cloud","cold","common","coven","crag","crest","crow","crystal","dark","dawn","day","dead","death","deep","dew","dirge","distant","doom","down","dragon","dream","dusk","dust","eagle","earth","elf","ember","even","fallen","far","farrow","feather","fern","fire","fist","flame","flat","flint","fog","fore","forest","four","free","frost","frozen","full","fuse","gloom","glory","glow","gold","gore","grand","grass","gray","great","green","grizzly","hallow","hallowed","hammer","hard","haven","hawk","haze","heart","heavy","hell","high","hill","holy","honor","horse","humble","hydra","ice","iron","keen","laughing","leaf","light","lightning","lion","lone","long","low","luna","marble","marsh","master","meadow","mild","mirth","mist","molten","monster","moon","morning","moss","mountain","mourn","mourning","nether","nickle","night","noble","nose","oat","ocean","orb","pale","peace","phoenix","pine","plain","pride","proud","pyre","rage","rain","rapid","raven","red","regal","rich","river","rock","rose","rough","rumble","rune","sacred","sage","saur","sea","serpent","shade","shadow","sharp","shield","silent","silver","simple","single","skull","sky","slate","smart","snake","snow","soft","solid","spider","spirit","spring","stag","star","steel","stern","still","stone","storm","stout","strong","summer","sun","swift","tall","tarren","terra","three","thunder","titan","tree","true","truth","tusk","twilight","two","void","war","water","wheat","whisper","whit","white","wild","willow","wind","winter","wise","wolf","wood","wooden","wyvern","young"]
+human_last_name2 = ["arm","arrow","ash","axe","bane","bash","basher","beam","beard","belly","bend","bender","binder","blade","blaze","bleeder","blight","blood","bloom","blossom","blower","bluff","bone","bough","bow","brace","braid","branch","brand","breaker","breath","breeze","brew","bringer","brook","brooke","brow","caller","chaser","chewer","claw","cleaver","cloud","crag","creek","crest","crusher","cut","cutter","dancer","dane","dew","doom","down","draft","dream","dreamer","drifter","dust","eye","eyes","fall","fallow","fang","feather","fire","fist","flame","flare","flaw","flayer","flow","flower","follower","force","forest","forge","fury","gaze","gazer","gem","glade","gleam","glide","gloom","glory","glow","grain","grip","grove","guard","gust","hair","hammer","hand","heart","hell","helm","hide","horn","hunter","jumper","keep","keeper","killer","lance","lash","leaf","less","light","mane","mantle","mark","maul","maw","might","moon","more","mourn","oak","orb","ore","peak","pelt","pike","punch","rage","reaper","reaver","rider","ridge","ripper","river","roar","rock","root","run","runner","scar","scream","scribe","seeker","shade","shadow","shaper","shard","shield","shine","shot","shout","singer","sky","slayer","snarl","snout","snow","soar","song","sorrow","spark","spear","spell","spire","spirit","splitter","sprinter","stalker","star","steam","steel","stone","stream","strength","stride","strider","strike","striker","sun","surge","swallow","swift","sword","sworn","tail","taker","talon","thorn","thorne","tide","toe","track","trap","trapper","tree","vale","valor","vigor","walker","ward","watcher","water","weaver","whirl","whisk","whisper","willow","wind","winds","wing","wolf","wood","woods","wound"]
+
+half_elf_male_first1=["Aal","Abe","Ad","Ada","Ade","Al","An","Ar","Arn","Aro","Aud","Ave","Bal","Bar","Bel","Ber","Bri","Char","Chris","Cler","Col","Con","Cor","Cra","Cris","Dan","Dav","Der","Don","Dor","Dra","Ed","Eir","El","Eli","Em","Eme","Eng","Er","Ever","Fal","Far","Fara","Fer","Fran","Fred","Fril","Ful","Ga","Gab","Gaer","Gal","Gale","Gar","Gef","Geof","Ger","Gib","Gil","Gir","God","Gra","Greg","Ha","Hal","Ham","Han","Har","Have","Hem","Hen","Hewe","Hig","Hil","Hor","Hu","Hum","Ian","Ilo","Im","Ing","Ingel","Isem","Ivo","Iz","Jac","Jam","Jame","Jaqu","Jar","Jef","Jen","Jer","Jere","Jor","Jose","Kev","Kri","Lam","Lan","Lance","Laun","Leo","Lor","Mal","Malcu","Mar","Maug","Mei","Mer","Mic","Mich","Mik","Nic","Nich","Nig","Nige","Nik","Nil","Nor","Nyco","Ori","Os","Pan","Per","Perci","Pet","Pete","Pier","Quo","Rad","Raf","Raim","Rain","Ran","Raw","Ray","Raym","Reim","Rem","Ren","Rey","Reyn","Ri","Ric","Rich","Rob","Rod","Rog","Roge","Rol","Rot","Sal","Sala","Sam","San","Sar","Sim","Sten","Steph","Syl","Tan","Ted","Teod","Ter","Thi","Thom","Tib","To","Tob","Tra","Tris","Tyb","Tyr","Uan","Ul","Um","Ur","Val","Van","Vic","Vil","Wal","War","Wat","Wi","Wil","Wim","Wis","Wy","Wym","Xan","Xav","Yen","Yor","Ysem","Zan","Zyl"]
+half_elf_male_first2=["amar","arat","alath","avor","bane","ben","borin","byran","coril","craes","dal","dar","deyr","dil","dithas","dorr","driel","dryn","duil","duin","dyr","ellan","elor","enas","endyl","esin","faelor","faerd","falen","farin","fin","finas","fire","fyndar","fyr","gotin","gretor","homin","horn","idon","indel","is","kas","kath","koris","ladar","ladon","lael","laer","laeril","laern","laeron","laith","lamar","lamir","lan","lanann","lando","lanor","lar","lareo","las","lathan","lather","leath","len","lidyr","linar","lion","lis","lisar","lith","luar","luin","lumin","manas","mar","mede","mer","meron","minar","mir","mitar","mon","morn","mus","naith","nall","nalor","nan","nar","naril","nas","neak","neiros","nian","nik","nor","nos","orin","osrin","ovar","parin","phanis","phar","phon","qarim","qinor","rach","rath","rauth","reak","red","rel","reth","rian","ridan","ril","rion","rith","ron","ros","roth","ruil","rune","ryll","rym","ryn","rynn","rynnon","san","saran","sariph","seith","shor","sin","staer","tael","taor","tar","telar","tevar","tharal","thath","thil","thin","thor","thorn","tien","torin","trydal","tumil","uin","valor","vendor","verel","voril","warith","win","word","xian","xiron","yeras","ynor","zaphir","zaren"]
+half_elf_female_first1=["Aal","Aan","Ad","Ade","Adel","Ael","Al","Ale","Ali","Alu","Aly","Am","Ame","Amel","An","Ar","Ari","Ath","Athe","Aub","Av","Ave","Avi","Avil","Beat","Bel","Ber","Bi","Bran","Bren","Bri","Brid","Brun","Byn","Car","Ced","Chris","Clar","Co","Cris","Dar","Del","Eb","Ed","Ede","Edel","El","Eli","Elin","Elis","Eliz","Elye","Elyen","Elys","Em","Emel","Emil","Es","Esa","Eve","Evel","Eza","Fae","Fha","Ga","Gab","Gaen","Gal","Gen","Gene","Gif","Gis","Gise","Gisel","Glo","Glor","Gon","Gre","Gres","Gwen","Ha","Had","Haly","Har","Haw","He","Hege","Heil","Hel","Her","Herme","Hil","Ho","Hos","Ib","Ile","Ima","In","Ioh","Iro","Is","Isa","Ise","Isel","Ismen","Iso","Isol","Issa","Isso","Ive","Jac","Jan","Jana","Jean","Jeh","Jeha","Jen","Jene","Jes","Jessi","Jil","Jin","Jis","Joan","Joh","Joha","Joy","Jul","Kri","Kys","Les","Lib","Lil","Lili","Lin","Lis","Liz","Lora","MAde","Ma","Maal","Mad","Maer","Mag","Mah","Mal","Man","Mar","Mare","Mari","Math","Maud","Mel","Meli","Mer","Mere","Mil","Mili","Mir","Mol","Myl","Na","Nan","Neri","Ni","Nin","Nor","Ol","Ophi","Or","Ori","Phaye","Pri","Qi","Que","Rel","Res","Roh","Rosa","Rose","Sa","Sael","Saf","Sal","Sar","Sara","Sel","Seph","Sera","Sul","Sus","Syl","Ta","Tam","Tef","Teph","Thef","Ther","Tif","Tyl","Una","Uri","Ven","Vic","Vyl","Win","Wol","Xil","Xyr","Yes","Yll","Ysa","Yv","Zel","Zin"]
+half_elf_female_first2=["aerys","anys","atha","bellis","brae","bwynn","caena","caiah","cerys","charis","cia","daerae","dalar","danna","dee","delia","diane","dis","dove","dris","due","dyl","elor","enyphe","faen","farrel","fine","galyn","gwynn","hala","hana","hava","heira","hera","here","hophe","kaala","kaela","kaen","kiasha","kilia","laela","laema","laena","laerla","laevar","lahne","lais","lana","lanae","lanil","lanis","lanna","lantha","lara","larel","lartha","larue","latha","laurel","laya","layna","ledha","lee","lei","leia","lena","lenas","lendra","leria","lessa","lesse","leth","letha","li","lia","liana","liania","lica","lihn","lila","lin","lira","lisa","litia","livren","lon","lone","lora","lorna","lossa","luna","lurie","luth","lya","lyn","lynn","lynna","lynor","lynthi","lyrra","madia","mae","malis","manda","mara","maya","medha","mere","mia","micca","mylla","myra","mythe","na","naestra","nalore","nalue","nalyn","nandra","naril","narra","nastha","nath","nee","nesia","nesra","nia","niel","niya","noa","noel","nor","nora","nys","ona","phenee","phira","pisys","qarin","qwyn","radyl","rae","raele","raera","raine","rainne","ralla","rana","ranthae","rathla","ravae","reene","rele","relle","ria","riah","riani","riara","riel","rien","rika","rila","rin","rina","rindra","riona","ris","rissa","rith","rithe","rolia","rona","ronyn","rora","rue","runia","ryl","ryll","ryn","sala","salia","sarda","saria","sario","seris","sevel","shara","shee","shera","shia","sia","sianna","star","stele","stine","sula","synora","syra","sys","tala","talia","tarzah","tha","thae","thaela","thana","thara","theris","thion","thyl","tihne","tora","trana","tria","trine","vae","vara","viel","vis","vyre","walyn","wana","waris","wyn","xaris","xipha","yana","yaries","yeth","yra","zael","zee","zenya","ziar","zira"]
+half_elf_last1=["Ad","Ae","Ara","Bal","Bei","Bi","Bry","Cai","Car","Chae","Cra","Da","Dae","Dor","Eil","El","Ela","En","Er","Fa","Fae","Far","Fen","Gen","Gil","Glyn","Gre","Hei","Hele","Her","Hola","Ian","Iar","Ili","Ina","Jo","Kea","Kel","Key","Kris","Leo","Lia","Lora","Lu","Mag","Mia","Mira","Mor","Nae","Neri","Nor","Ola","Olo","Oma","Ori","Pa","Per","Pet","Phi","Pres","Qi","Qin","Qui","Ralo","Rava","Rey","Ro","Sar","Sha","Syl","The","Tor","Tra","Tris","Ula","Ume","Uri","Va","Val","Ven","Vir","Waes","Wran","Wyn","Wysa","Xil","Xyr","Yel","Yes","Yin","Ylla","Zin","Zum","Zyl"]
+half_elf_last2=["balar","banise","bella","beros","can","caryn","ceran","cyne","dan","di","dithas","dove","faren","fiel","fina","fir","geiros","gella","golor","gwyn","hana","harice","hice","horn","jeon","jor","jyre","kalyn","kas","kian","krana","lamin","lana","lar","lee","len","leth","lynn","maer","maris","menor","moira","myar","mys","na","nala","nan","neiros","nelis","norin","peiros","petor","phine","phyra","qen","qirelle","quinal","ra","ralei","ran","rel","ren","ric","rie","rieth","ris","ro","rona","rora","roris","salor","sandoral","satra","stina","sys","thana","thyra","toris","tris","tumal","valur","varis","ven","vyre","warin","wenys","wraek","wynn","xalim","xidor","xina","xisys","yarus","ydark","ynore","yra","zana","zeiros","zorwyn","zumin"]
+
+# Human names
+nm1=Distribution(["","","b","bh","f","h","j","kh","m","n","nh","r","rh","s","z"])
+nm2=Distribution(["a","e","u","a","e","u","a","e","u","i","ei"])
+nm3=Distribution(["b","d","hm","hn","hl","kh","l","m","rd","r","s","sh","z"])
+nm4=Distribution(["d","m","n","r"])
+nm5=Distribution(["","","c","f","h","j","m","n","r","s","sh","y","z"])
+nm6=Distribution(["a","e","u","a","e","u","o","o","i","i","ei"])
+nm7=Distribution(["d","f","hn","hl","hm","hr","l","m","n","p","r","s","sh","sm","sn","t","v","z"])
+nm8=Distribution(["h","l"])
+nm9=Distribution(["b","bh","c","d","dh","h","j","kh","m","n","p","r","rh","sh","z"])
+nm10=Distribution(["a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","a","a","a","ei"])
+nm11=Distribution(["d","h","hr","hl","k","kh","l","m","mm","n","nn","ss","st","sh"])
+nm12=Distribution(["","","","","","d","l","m","n","r"])
+nm13=Distribution(["","b","br","d","g","gr","h","m","n","r","st","t","v"])
+nm14=Distribution(["a","e","i","o","u"])
+nm15=Distribution(["","br","cr","gr","kv","kr","l","ll","ld","lv","nd","ng","nk","nv","rd","rg","rk","rst","rv","v"])
+nm16=Distribution(["","","","d","dd","g","l","lm","m","n","r","rk","rn"])
+nm17=Distribution(["","c","j","jh","k","l","m","n","r","s","sh","t"])
+nm18=Distribution(["a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","ee","ai","ei","ie"])
+nm19=Distribution(["ch","dr","l","ll","lr","ldr","ls","lz","n","ndr","rl","r","rr","rv","ss","sr","sv","w","z","zz","zn"])
+nm20=Distribution(["","","","","h","l","ll","n"])
+nm21=Distribution(["Axe","Glow","Blade","Blood","Bone","Cloud","Crag","Crest","Doom","Dream","Coven","Elf","Fern","Feather","Fire","Fist","Flame","Forest","Hammer","Heart","Hell","Leaf","Light","Moon","Rage","River","Rock","Shade","Shadow","Shield","Snow","Spirit","Star","Steel","Stone","Swift","Tree","Whisper","Wind","Wolf","Wood","Gloom","Glory","Orb","Ash","Blaze","Amber","Autumn","Barley","Battle","Bear","Black","Blue","Boulder","Bright","Bronze","Burning","Cask","Chest","Cinder","Clan","Claw","Clear","Cliff","Cold","Common","Crystal","Dark","Dawn","Day","Dead","Death","Deep","Dew","Dirge","Distant","Down","Dragon","Dusk","Dust","Eagle","Earth","Ember","Even","Far","Flat","Flint","Fog","Fore","Four","Free","Frost","Frozen","Full","Fuse","Gold","Horse","Gore","Grand","Gray","Grass","Great","Green","Grizzly","Hallow","Hallowed","Hard","Hawk","Haze","Heavy","Haven","High","Hill","Holy","Honor","Forest","Humble","Hydra","Ice","Iron","Keen","Laughing","Lightning","Lion","Lone","Long","Low","Luna","Marble","Meadow","Mild","Mirth","Mist","Molten","Monster","Morning","Moss","Mountain","Moon","Mourn","Mourning","Night","Noble","Nose","Oat","Ocean","Pale","Peace","Phoenix","Pine","Plain","Pride","Proud","Pyre","Rain","Rapid","Raven","Red","Regal","Rich","Rose","Rough","Rumble","Rune","Sacred","Sage","Saur","Sea","Serpent","Sharp","Silent","Silver","Simple","Single","Skull","Sky","Slate","Smart","Snake","Soft","Solid","Spider","Spring","Stag","Star","Stern","Still","Storm","Stout","Strong","Summer","Sun","Tall","Three","Thunder","Titan","True","Truth","Marsh","Tusk","Twilight","Two","Void","War","Wheat","Whit","White","Wild","Winter","Wise","Wyvern","Young","Alpen","Crest","Crow","Fallen","Farrow","Haven","Master","Nether","Nickle","Raven","River","Stone","Tarren","Terra","Water","Willow","Wooden"])
+nm22=Distribution(["axe","glow","beam","blade","blood","bone","cloud","dane","crag","crest","doom","dream","feather","fire","fist","flame","forest","hammer","heart","hell","leaf","light","moon","rage","river","rock","shade","claw","shadow","shield","snow","spirit","star","steel","stone","swift","tree","whisper","wind","wolf","wood","gloom","glory","orb","ash","blaze","arm","arrow","bane","bash","basher","beard","belly","bend","bender","binder","bleeder","blight","bloom","blossom","blower","glade","bluff","bough","bow","brace","braid","branch","brand","breaker","breath","breeze","brew","bringer","brook","brow","caller","chaser","reaper","chewer","cleaver","creek","crusher","cut","cutter","dancer","dew","down","draft","dreamer","drifter","dust","eye","eyes","fall","fang","flare","flaw","flayer","flow","follower","flower","force","forge","fury","gaze","gazer","gem","gleam","glide","grain","grip","grove","guard","gust","hair","hand","helm","hide","horn","hunter","jumper","keep","keeper","killer","lance","lash","less","mane","mantle","mark","maul","maw","might","more","mourn","oak","ore","peak","pelt","pike","punch","reaver","rider","ridge","ripper","roar","run","runner","scar","scream","scribe","seeker","shaper","shard","shot","shout","singer","sky","slayer","snarl","snout","soar","song","sorrow","spark","spear","spell","spire","splitter","sprinter","stalker","steam","stream","strength","stride","strider","strike","striker","sun","surge","sword","sworn","tail","taker","talon","thorn","tide","toe","track","trap","trapper","vale","valor","vigor","walker","ward","watcher","water","weaver","whirl","whisk","winds","wing","woods","wound","brooke","fall","fallow","horn","root","shine","swallow","thorne","willow","wood"])
+nm23=Distribution(["","","b","br","f","g","gl","gr","h","k","m","n","p","r","s","v"])
+nm24=Distribution(["a","e","i","o"])
+nm25=Distribution(["b","br","d","dr","dg","g","gr","r","rg","rd","rv","s","v","z"])
+nm26=Distribution(["f","l","m","n","r"])
+nm27=Distribution(["c","ch","h","k","l","m","n","r","s","t","v","z"])
+nm28=Distribution(["h","hn","hr","l","lm","lr","ln","n","nn","r","rn","rl","rm","t","th","thr","z"])
+nm29=Distribution(["","","","","","","h","l","n","s"])
+nm30=Distribution(["b","ch","d","gr","gl","k","m","n","r","s","sh","st","v"])
+nm31=Distribution(["a","e","i","o","u"])
+nm32=Distribution(["d","dr","k","kr","kn","l","m","n","r","rg","rk","rn","rd","v","vr","z"])
+nm33=Distribution(["dz","g","n","rsk","sk","tsk","v","z"])
+nm34=Distribution(["","","","bl","br","fr","g","gr","l","m","r","st","str","t","tr","v","z"])
+nm35=Distribution(["a","e","o","u"])
+nm36=Distribution(["ck","dr","dv","gr","gn","lc","ld","lv","lb","m","nn","nd","nv","rd","rc","rk","rb"])
+nm37=Distribution(["m","n","r","rth","th"])
+nm38=Distribution(["","","b","c","h","k","l","m","n","r","s","v","w","z"])
+nm39=Distribution(["fn","fl","fr","g","l","lg","lr","m","n","r","rh","sh","str","th","thr","v","vr"])
+nm40=Distribution(["","","","","y"])
+nm43=Distribution(["b","d","g","h","j","k","l","m","n","r","s","t","th","v","z"])
+nm44=Distribution(["a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","io","ao","eo","eu","ue"])
+nm45=Distribution(["d-k","d-v","k-d","k-v","k-m","k-r","m-k","m-z","m-v","n-v","n-z","n-d","r-k","r-v","r-z","t-k","r-d","h-k","h-z","-k","-d","-m","-n","-v","-z","-t","-r","ch","d","h","hp","hk","hv","j","k","m","n","r","rh","t","th","v","z","ch","d","h","hp","hk","hv","j","k","m","n","r","rh","t","th","v","z","ch","d","h","hp","hk","hv","j","k","m","n","r","rh","t","th","v","z"])
+nm46=Distribution(["","","d","f","h","k","n","r","s","th","z"])
+nm47=Distribution(["c","ch","f","h","k","l","m","n","r","s","t","th","v","z"])
+nm48=Distribution(["ch","f","fr","h","l","m","n","ph","s","sh","r","th","z","zr","zh"])
+nm49=Distribution(["","","","","","","","h","s","th"])
+nm50=Distribution(["b","d","f","h","j","l","m","n","r","s","v","z"])
+nm51=Distribution(["a","e","i","u","a","e","i","u","a","e","i","u","a","e","i","o","u","ue","uu"])
+nm52=Distribution(["cr","ch","hp","hk","hr","j","kr","kd","l","lr","ldr","lt","ltr","nd","nsk","nkh","nth","ndr","nkr","nz","pr","pv","th","thr","v","vr","z","zr","zd"])
+nm53=Distribution(["b","d","ft","fk","hd","hr","hk","k","kt","ld","m","t"])
+nm54=Distribution(["b","br","d","dr","f","g","j","k","m","r","s","sh","t","vl","z"])
+nm55=Distribution(["a","e","i","o","a","e","i","o","a","e","i","o","a","e","i","o","oo","ou","au"])
+nm56=Distribution(["d","dj","j","lm","ld","lv","m","mz","mv","n","nz","nd","nr","nd","r","rg","rd","rl","rv","rz","sl","sv","sd","th","tv","v","z"])
+nm57=Distribution(["c","d","k","r","s","sk","t"])
+nm58=Distribution(["","","d","f","h","l","m","n","r","s","sh","t","th","v","y","z"])
+nm59=Distribution(["a","e","i","u"])
+nm60=Distribution(["ch","dr","dh","f","fr","gr","h","ldr","lm","ln","lv","lr","mm","mz","mv","ndr","nr","r","rr","rr","rv","rs","rl","v","vr","v","vl"])
+nm61=Distribution(["","","","","","","","","","","","","l","n","s","sh","th"])
+nm62=Distribution(["","","ch","d","g","gr","h","m","n","r","st","t","tr","v","vr","z"])
+nm63=Distribution(["a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","ye","ya"])
+nm64=Distribution(["b","d","dz","g","k","ld","lb","lm","lz","m","mr","mz","n","nz","ng","nt","r","rg","rn","rk","th","tr","tv","v","vr","vz","b","d","g","k","m","n","r","v"])
+nm65=Distribution(["","","ch","f","h","j","l","m","q","sh","t","th","w","z"])
+nm66=Distribution(["a","i","e","o","u","ia","ui","io","ie","iu"])
+nm67=Distribution(["","","","h","m","n","ng","p","w","y"])
+nm68=Distribution(["b","c","ch","d","j","l","m","n","p","q","sh","t","ts","x","y","z"])
+nm69=Distribution(["ai","ia","ao","ei","iao","ui","ua","ue"])
+nm70=Distribution(["","","","c","ch","d","h","j","k","l","m","n","p","q","s","sh","t","w","x","y","z"])
+nm71=Distribution(["a","i","u","ai","ia","iao","ue","ei","ie","ua","ao"])
+nm72=Distribution(["","","","m","n","ng","y"])
+nm73=Distribution(["","","ch","cr","d","gr","f","fr","h","m","p","r","s","t","v","z"])
+nm74=Distribution(["a","e","i","o","u","a","e","i","o","u","a","e","i","o","u","ai","ie","ue","ea"])
+nm75=Distribution(["b","br","c","dr","l","ld","lb","m","mb","n","nr","nt","nch","r","rf","rv","rn","rc","rd","rt","st","sc","t","v","z"])
+nm76=Distribution(["","","l","n","r","s","z"])
+nm77=Distribution(["","","","b","d","f","j","l","m","q","s","v"])
+nm78=Distribution(["a","e","i","o","a","e","i","o","a","e","i","o","a","e","i","o","a","e","i","o","a","e","i","o","ui","ua","ai","ia","ie","ei"])
+nm79=Distribution(["d","l","lm","m","n","nc","nd","ndr","nt","nn","r","rt","s","t","tt","v"])
+nm80=Distribution(["","","b","c","d","f","g","h","j","m","p","r","s","v","z"])
+nm81=Distribution(["br","c","dr","g","h","l","lb","ld","m","n","nd","nz","r","rn","rg","s","sc","sq","st","v","z"])
+nm82=Distribution(["","","","","l","n","r","s"])
+
+def title_case(f):
+    def inner_f(*args, **kw_args):
+        r = f(*args, **kw_args)
+        return r.title()
+    return inner_f
+
+def dwarf_male_first():
+    return random.choice(dwarf_male1) + random.choice(dwarf_male2) + random.choice(dwarf_male3)
+def dwarf_female_first():
+    return random.choice(dwarf_female1) + random.choice(dwarf_female2) + random.choice(dwarf_female3)
+def dwarf_last():
+    return random.choice(dwarf_last1) + random.choice(dwarf_last2)
+@title_case
+def dwarf_female():
+    return dwarf_female_first() + " " + dwarf_last()
+@title_case
+def dwarf_male():
+    return dwarf_male_first() + " " + dwarf_last()
+def dwarf():
+    return random.choice([dwarf_female(), dwarf_male()])
+
+def elf_last():
+    return random.choice(elf_last1) + random.choice(elf_last2)
+def elf_first_male():
+    return random.choice(elf_first_name_male)
+def elf_first_female():
+    return random.choice(elf_first_name_female)
+def elf_first_neutral():
+    return random.choice(elf_first_name_neutral)
+@title_case
+def elf_female():
+    return elf_first_female() + " " + elf_last()
+@title_case
+def elf_male():
+    return elf_first_male() + " " + elf_last()
+@title_case
+def elf_neutral():
+    return elf_first_neutral() + " " + elf_last()
+def elf():
+    return random.choice([elf_male(), elf_female(), elf_neutral()])
+
+@title_case
+def orc_male():
+    return random.choice(orc_male1)
+@title_case
+def orc_female():
+    return random.choice(orc_female1)
+def orc():
+    return random.choice([orc_male(), orc_female()])
+
+def half_elf_male_first():
+    return random.choice(half_elf_male_first1) + random.choice(half_elf_male_first2)
+def half_elf_female_first():
+    return random.choice(half_elf_female_first1) + random.choice(half_elf_female_first2)
+def half_elf_last():
+    return random.choice(half_elf_last1) + random.choice(half_elf_last2)
+@title_case
+def half_elf_male():
+    return half_elf_male_first() + " " + half_elf_last()
+@title_case
+def half_elf_female():
+    return half_elf_female_first() + " " + half_elf_last()
+def half_elf():
+    return random.choice([half_elf_female(), half_elf_male()])
+
+@title_case
+def surname():
+    return random.choice(human_last_name1) + random.choice(human_last_name2)
+
+@sampled
+def human_last(i=None):
+    if i is None:
+        i = random.randint(0,15)
+    if i<2:
+        return nm9+nm10+nm11+nm10+nm12
+    elif 2<=i<4 or 6<=i<8:
+        a,b = "", ""
+        while a==b:
+            a,b = nm21.sample(), nm22.sample()
+        return a+b
+    elif i==4:
+        return nm30+nm31+nm33
+    elif i==5:
+        return nm30+nm31+nm32+nm31+nm33
+    elif i==8:
+        return nm50+nm51+nm52+nm51+nm52+nm51+nm53
+    elif i==9:
+        return nm50+nm51+nm52+nm51+nm53
+    elif i==10:
+        return nm62+nm63+nm64+nm63+nm64+nm63+nm64+nm63
+    elif i==11:
+        return nm62+nm63+nm64+nm63+nm64+nm63
+    elif i<14:
+        c = nm72.sample()
+        if c:
+            return nm70+nm71+c;
+        else:
+            return nm70.nonempty()+nm71+c
+    else:
+        return nm80+nm14+nm81+nm14+nm81+nm14+nm82
+@sampled
+def human_female_first_name(i=None):
+    if i == 0:
+        return nm5+nm6+nm7+nm6+nm7+nm6+nm8
+    elif i==1:
+        return nm5+nm6+nm7+nm6+nm8
+    elif i==2:
+        return nm17+nm18+nm19+nm18+nm19+nm18+nm20
+    elif i==3:
+        return nm17+nm18+nm19+nm18+nm20
+    elif i==4:
+        return nm27+nm24+nm28+nm24+nm29
+    elif i==5:
+        return nm27+nm24+nm29
+    elif i==6:
+        return nm38+nm24+nm39+nm24+nm39+nm24+nm40
+    elif i==7:
+        return nm38+nm24+nm39+nm24+nm40
+    elif i==8:
+        return nm47+nm14+nm48+nm14+nm48+nm14+nm49
+    elif i==9:
+        return nm47+nm14+nm48+nm14+nm49
+    elif i==10:
+        return nm58+nm59+nm60+nm59+nm60+nm59+nm61
+    elif i==11:
+        return nm58+nm59+nm60+nm59+nm61
+    elif i<14:
+        return nm68+nm69;
+    elif i==10: # sic, this is in the original
+        return nm77+nm78+nm79+nm77+nm79+nm77
+    else:
+        return nm77+nm78+nm79+nm77
+@sampled
+def human_male_first_name(i=None):
+    if i is None:
+        i = random.randint(0,15)
+    if i<2:
+        return nm1+nm2+nm3+nm2+nm4
+    elif i<4:
+        d = nm16.sample()
+        if d:
+            return nm13+nm14+nm15.nonempty()+nm14+d
+        else:
+            return nm13+nm14+""+nm14+d
+    elif i==4:
+        return nm23+nm24+nm25+nm24+nm26
+    elif i==5: 
+        return nm23+nm24+nm26
+    elif i==6:
+        return nm34+nm35+nm36+nm35+nm37
+    elif i==7:
+        return nm34+nm35+nm37
+    elif i==8:
+        return nm43+nm44+nm45+nm44+nm45+nm44+nm46
+    elif i==9:
+        return nm43+nm44+nm45+nm44+nm46
+    elif i==10:
+        return nm54+nm55+nm56+nm55+nm56+nm55+nm57
+    elif i==11:
+        return nm54+nm55+nm56+nm55+nm57
+    elif 12<=i<14:
+        c = nm67.sample()
+        if c:
+            return nm65+nm66+c
+        else:
+            return nm65.nonempty()+nm66+c
+    elif i==14:
+        return nm73+nm74+nm75+nm74+nm75+nm74+nm76
+    else:
+        return nm73+nm74+nm75+nm74+nm76
+
+@title_case
+def human_male(i=None):
+    if i is None:
+        i = random.randint(0,15)
+    return human_male_first_name(i) + " " + human_last(i)
+@title_case
+def human_female(i=None):
+    if i is None:
+        i = random.randint(0,15)
+    return human_female_first_name(i) + " " + human_last(i)
+def human(i=None):
+    if i is None:
+        i = random.randint(0,15)
+    return random.choice([human_male(i), human_female(i)])
+
+for x in range(10):
+    print("dwarf " + dwarf())
+for x in range(10):
+    print("elf " + elf())
+for x in range(10):
+    print("orc " + elf())
+for x in range(10):
+    print("half-elf " + half_elf())
+for x in range(10):
+    print("surname " + surname())
+for x in range(16):
+    print("human " + human(x))
