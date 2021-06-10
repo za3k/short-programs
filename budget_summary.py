@@ -26,7 +26,7 @@ print("{: <12} {:.2f}".format("Total:", sum(amount for (amount, category) in lin
 print("{: <12} {:.2f}".format("Total (no rent):", sum(amount for (amount, category) in lines if category != "Rent")))
 categories = sorted(set(category for (amount, category) in lines))
 print()
-OTHER = ("Food", "Grocery", "Luxury")
+OTHER = ("Grocery", "Luxury", "Good", "Restaurant")
 for category in categories:
     if category not in OTHER:
         print("{: <12} {:.2f}".format(category+":", sum(amount for (amount, c) in lines if category == c)))

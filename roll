@@ -18,7 +18,7 @@ if m:
     else:
         modifier = 0
     result = modifier
-    for i in range(sides):
+    for i in range(dice):
         result += random.randint(1, sides)
     if modifier >= 0:
         s = "{}d{}+{}".format(dice, sides, modifier)
