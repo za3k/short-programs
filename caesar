@@ -1,0 +1,24 @@
+#!/bin/python3
+import sys
+lower = 'abcdefghijklmnopqrstuvwxyz'
+UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+def shift_letter(l, amount):
+    if l in lower:
+        alpha = lower
+    elif l in UPPER:
+        alpha = UPPER
+    else:
+        return l
+
+    i = alpha.index(l)
+    j = (i+amount)%26
+    return alpha[j]
+        
+def shift(s, amount):
+    return ''.join(shift_letter(l, amount) for l in s)
+
+if __name__ == "__main__":
+    s = ' '.join(sys.argv[1:])
+    for i in range(26):
+        print("{:<2} {}".format(i, shift(s, amount=i)))
