@@ -33,6 +33,12 @@ budget_summary
 ---
 Helper for za3k only. Summarizes budget categories typed in from my logbook
 
+caesar
+---
+Does or reverses a classic caesar cipher, in which each letter is shifted a set number of letters through the alphabet.
+
+Usage: `caesar cipher "QEB NRFZH YOLTK CLU GRJMP LSBO QEB IXWV ALD"`
+
 changed-files
 ---
 In Arch Linux, lists the config files which have been altered from the default.
@@ -116,6 +122,10 @@ extract-alarmpi
 Downloads the latest version of Arch Linux for Raspberry Pi (aka alarmpi) as a .tar.gz file and converts it to an image file which can be copied directly to an SD card.
 
     Usage: extract-alarmpi [SOURCE.tar.gz [TARGET.img]]
+
+factor
+---
+Removed. Turns out this is now in coreutils and nearly identical to my program.
 
 fantasy-names
 ---
