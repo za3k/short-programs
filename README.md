@@ -117,6 +117,12 @@ Downloads the latest version of Arch Linux for Raspberry Pi (aka alarmpi) as a .
 
     Usage: extract-alarmpi [SOURCE.tar.gz [TARGET.img]]
 
+fantasy-names
+---
+Generate some D&D fantasy names. Ported from https://www.fantasynamegenerators.com/, I encourage you to use the original which is much better.
+
+Usage: `fantasy-names`
+
 filter
 ---
 Usage: `cat <stream | filter --negative FILENAME` blacklists anything in FILENAME, there are options for whitelisting and dealing with repeats.
@@ -153,6 +159,12 @@ Usage:
     google-count.py "Hello world"
     264000000
 
+habit-tracker
+---
+Useful only to me. Tracks whether I do things like brush my teeth once a day, shave regularly, etc.
+
+Usage: `habit-tracker`
+
 hours
 ---
 Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
@@ -183,7 +195,7 @@ On Arch Linux, fix lwjgl.jar in minecraft
 
 math
 ---
-CLI calculator. Outputs the result of simple math expresisons. Example:
+CLI calculator. Outputs the result of simple math expressions (warning: uses 'eval'). Example:
 
     math 2+2
 

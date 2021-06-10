@@ -1,0 +1,284 @@
+import datetime, json, math, os, select, string, subprocess, sys, time
+
+CLI_HELP = """
+habits [OPTIONS]
+    -h, --help: print this help
+    -r, --record: record a single event by name
+    -s, --status: print the status
+    -i, --interactive: interactively print the status and allow single-key logging
+"""
+
+ACTIONS_SOURCE = [
+    # This is the display order for timers and keys
+    # key, id,          description,            target_period, timer_shown
+    ("w", "wake",       "wake up",              "1d", True),
+    ("s", "sit",        "sit up / sit down",    "1d", True),
+    ("d", "data",       "data log, morning",    "1d", True),
+    ("t", "teeth",      "teeth, brush",         "1d", True),
+    ("m", "medicine",   "medicine, take",       "1d", True),
+    ("v", "vegetable",  "vegetable, eat a",     "1d", True),
+    ("u", "stand",      "stand up",             "1d", True),
+    ("a", "ankle",      "ankle exercise, do",   "1d", True),
+
+    ("g", "walk",       "go on a walk",         "1w", True),
+    ("e", "exercise",   "exercise strenuously", "1w", True),
+    ("j", "shave",      "shave",                "1w", True),
+
+    ("l", "lay",        "lay down",             None, False),
+    ("c", "carrot",     "carrot juice, drink",  None, False),
+    ("b", "broccoli",   "broccoli, eat",        None, False),
+    ("h", "shower",     "shower, take a",       None, False),
+
+    ("q", "quit",       "quit this program",    None, False),
+    #("x", "test", "test action", None),
+]
+assert all(len(x) == len(ACTIONS_SOURCE[0]) for x in ACTIONS_SOURCE)
+ACTIONS = [a[1] for a in ACTIONS_SOURCE]
+ACTION_TO_KEY = { a[1]: a[0] for a in ACTIONS_SOURCE }
+ACTION_TIMER_SHOWN = { a[1]: a[4] for a in ACTIONS_SOURCE }
+DESCRIPTIONS = { a[1]: a[2] for a in ACTIONS_SOURCE }
+PERIODS = { a[1]: a[3] for a in ACTIONS_SOURCE }
+
+KEYS = { a[0]: a[1] for a in ACTIONS_SOURCE }
+WIDTH=80
+assert len(set(KEYS.keys())) == len(ACTIONS_SOURCE)
+assert all(x in string.ascii_lowercase for x in KEYS.keys())
+
+COLORS = {
+    "grey": "\x1b[90m",
+    "white": "\x1b[37m",
+    "yellow": "\x1b[33m",
+    "red": "\x1b[31m",
+    "green": "\x1b[32m",
+    "default": "\x1b[34m",
+    "blue": "\x1b[34m",
+    #"key": "\x1b[97;102;4m",
+    "key": "\x1b[30;102m",
+}
+CLEARCOLOR = "\x1b[0m"
+
+def default_color():
+    return sys.stdout.isatty() # Default is color to a TTY, otherwise no ANSI
+
+def clear_screen():
+    sys.stdout.write("\x1b[2J\x1b[H")
+
+def output(text, color=None, usecolor=None):
+    if usecolor is None:
+        usecolor=default_color()
+    text = text[-WIDTH:] # limit display length
+    if usecolor == False:
+        color = None
+    if color is None:
+        sys.stdout.write(text)
+    else:
+        sys.stdout.write(COLORS[color])
+        sys.stdout.write(text)
+        sys.stdout.write(CLEARCOLOR)
+
+def readable_time(seconds):
+    if seconds is None:
+        return "never"
+    if seconds < 60:
+        return "{}s".format(seconds)
+    minutes = seconds//60
+    if minutes < 60:
+        return "{}m".format(minutes)
+    hours = minutes//60
+    if hours < 24:
+        return "{}h".format(hours)
+    days = hours//24
+    return "{}d".format(days)
+
+def parse_time(period):
+    i, unit = int(period[:-1]), period[-1]
+    assert unit in "smhdwy", "unknown time unit: {}".format(unit)
+    return i * {
+        "s": 1,
+        "m": 60,
+        "h": 60*60,
+        "d": 60*60*24,
+        "w": 60*60*24*7,
+        "y": 60*60*24*365,
+    }[unit]
+
+def due_status(action, state):
+    period = PERIODS[action]
+    if period is None:
+        return "grey"
+    if period[-1] in "dwy":
+        # Use a day-based calculation
+        if state[action] is None:
+            return "red"
+        start_of_today = datetime.datetime.combine(datetime.date.today(), time=datetime.time(6, 0)) # 6am this morning, a time I expect to be asleep generally
+        if "wake" in state and state["wake"] is not None:
+            start_of_today = datetime.datetime.fromtimestamp(state["wake"])
+        last_event = datetime.datetime.fromtimestamp(state[action])
+        period_days = parse_time(period) / parse_time("1d")
+        elapsed_days = (start_of_today - last_event) / datetime.timedelta(days=1)
+        if elapsed_days <= period_days - 1:
+            return "green"
+        elif period_days - 1 < elapsed_days <= period_days + 1: # turn yellow on the last day to do it
+            return "blue"
+        elif period_days + 1 < elapsed_days:
+            return "red"
+    elif period[-1] in "smh":
+        # Use a second-based calculation
+        if state[action] is None:
+            return "red"
+        elapsed_seconds = time.time() - state[action]
+        period = parse_time(period)
+        if elapsed_seconds > period:
+            return "red"
+        else:
+            return "green"
+    else:
+        assert False
+
+def print_status(state, usecolor=None):
+    if usecolor is None:
+        usecolor = default_color()
+    action_len = max(len(a) for a in ACTIONS) + 1
+    current_time = time.time()
+    l = []
+    for action in ACTIONS:
+        if not ACTION_TIMER_SHOWN[action]:
+            continue
+        status = due_status(action, state)
+        if state[action] is None:
+            elapsed_seconds = None
+        else:
+            elapsed_seconds = int(current_time - state[action])
+        t = readable_time(elapsed_seconds) + ("*" if (status in ["yellow", "red"] and not usecolor) else "")
+        readable_action = "{action:<{action_len}}".format(action=action, action_len=action_len)
+        l.append((
+            readable_action, elapsed_seconds, t, status, PERIODS[action],
+        ))
+    # Optionally sort l by something other than default order
+    for action, _, t, status, _ in l:
+        output(action + t + "\n", color=status)
+
+def print_record(record):
+    output("".join([ACTION_TO_KEY[a] for a in record]), color="blue")
+    output("\n")
+    output(" ".join(record), color="blue")
+    output("\n")
+
+def print_help(color=None):
+    #SUFFIX = "xq"
+    #keys = sorted(k for k in KEYS if k not in SUFFIX) + [k for k in SUFFIX if k in KEYS]
+    keys = [ACTION_TO_KEY[action] for action in ACTIONS]
+    desc_len = max(len(DESCRIPTIONS[KEYS[k]]) for k in keys)
+    cols = WIDTH // (desc_len+3)
+    rows = math.ceil(len(keys)/cols)
+    for row in range(rows):
+        for col in range(cols):
+            i = col*rows + row
+            if i < len(keys):
+                k = keys[i]
+                output(k+" ", color="key")
+                output("{desc:<{desc_len}}".format(desc=DESCRIPTIONS[KEYS[k]], desc_len=desc_len), color="grey")
+                output(" ")
+        output("\n")
+
+def print_cli_help():
+    print(CLI_HELP)
+
+def log_action(action, logger="habits"):
+    p = subprocess.run(["/usr/bin/log", logger], 
+        input=action+"\n", encoding='ascii')
+    assert p.returncode == 0
+
+def get_keystroke():
+    import tty, sys, termios
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        INPUT_TIMEOUT = 10.0
+        rlist, _, _ = select.select([sys.stdin], [], [], INPUT_TIMEOUT)
+        if rlist:
+            return sys.stdin.read(1)
+        else:
+            return None
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+def get_action():
+    output("do what? ")
+    sys.stdout.flush()
+    ks = get_keystroke()
+    return KEYS.get(ks)
+
+def load_state(statefile="/home/zachary/.habits/state.json"):
+    state_load = {}
+    if os.path.exists(statefile):
+        with open(statefile, "r") as f:
+            state_load = json.loads(f.read())
+
+    state = {}
+    for a in ACTIONS:
+        if a in state_load:
+            state[a] = state_load[a]
+        else:
+            state[a] = None
+    return state
+
+def persist_state(state, statefile="/home/zachary/.habits/state.json"):
+    with open(statefile, "w") as f:
+        f.write(json.dumps(state))
+
+def do_action(action, record=None, state=None):
+    if record is not None:
+        record.append(action)
+    log_action(action)
+    if state is not None:
+        state[action] = int(time.time())
+        persist_state(state)
+
+def interactive_loop(reload_after_action=False):
+    record = []
+    state = load_state()
+    while True:
+        clear_screen()
+        print_status(state)
+        output("\n")
+        print_record(record)
+        output("\n")
+        print_help()
+        output("\n")
+        action = get_action()
+        if action is None:
+            continue
+        do_action(action, record=record, state=state)
+        if reload_after_action:
+            state = load_state()
+        if action == "quit":
+            return
+            
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if args == [] or (len(args) == 1 and args[0] in ["-i", "--interactive"]):
+        interactive_loop()
+        sys.exit(0)
+    elif len(args) == 1 and args[0] in ["-h", "--help"]:
+        print_cli_help()
+        sys.exit(0)
+    elif len(args) == 2 and args[0] in ["-r", "--record"]:
+        action = args[1]
+        if action in ACTIONS:
+            state = load_state()
+            do_action(action, state=state)
+            sys.exit(0)
+        else:
+            print("invalid action: {}".format(action))
+            print("valid actions are: {}".format(" ".join(ACTIONS)))
+            sys.exit(1)
+    elif len(args) == 1 and args[0] in ["-s", "--status"]:
+        state = load_state()
+        print_status(state)
+        sys.exit(0)
+    else:
+        print("invalid arguments", args)
+        print_cli_help()
+        sys.exit(1)
