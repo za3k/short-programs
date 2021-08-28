@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import datetime, json, math, os, select, string, subprocess, sys, time
 
 CLI_HELP = """
@@ -21,7 +22,7 @@ ACTIONS_SOURCE = [
     ("a", "ankle",      "ankle exercise, do",   "1d", True),
 
     ("g", "walk",       "go on a walk",         "1w", True),
-    ("e", "exercise",   "exercise strenuously", "1w", True),
+    ("e", "exercise",   "exercise strenuously", "5d", True),
     ("j", "shave",      "shave",                "1w", True),
 
     ("l", "lay",        "lay down",             None, False),
