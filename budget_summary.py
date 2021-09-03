@@ -1,11 +1,13 @@
 #!/usr/bin/python3
-import datetime, re, sys
+import datetime, os, re, sys
 
 if len(sys.argv) > 1:
     fp = sys.argv[1]
 else:
-    current_date=str(datetime.date.today())
-    fp = "/home/zachary/blog2.za3k.com/_posts/{}-weekly-review.md".format(current_date)
+    current_date=datetime.date.today()
+    fp = "/home/zachary/weekly-review/_posts/{}-weekly-review.md".format(current_date)
+    if not os.path.exists(fp):
+        fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
 with open(fp, "r") as f:
     lines = list(line for line in f)
 
