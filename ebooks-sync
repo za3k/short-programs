@@ -1,6 +1,6 @@
 #!/bin/bash
 SYNC_DIR="/media/sd"
-BOOKS_DIR="/home/zachary/books"
+BOOKS_DIR=$(readlink "/home/zachary/books")
 
 fat_name() {
   echo "$1" | tr -d '\\/:*?"<>|'
