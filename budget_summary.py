@@ -1,15 +1,17 @@
 #!/usr/bin/python3
 import datetime, glob, os, re, sys
 
+DATE_FORMAT="%Y-%m-%d"
 def load_review():
     if len(sys.argv) > 1:
         fp = sys.argv[1]
         current_date = '-'.join(fp.split("/")[-1].split("-")[:3])
+        current_date = datetime.datetime.strptime(current_date, DATE_FORMAT)
     else:
         current_date=datetime.date.today()
-    fp = "/home/zachary/weekly-review/_posts/{}-weekly-review.md".format(current_date)
+    fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
     if not os.path.exists(fp):
-        fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
+        fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date.strftime(DATE_FORMAT))
     with open(fp, "r") as f:
         return list(f)
 def load_budget():
