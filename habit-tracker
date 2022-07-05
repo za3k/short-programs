@@ -188,9 +188,10 @@ def print_cli_help():
     print(CLI_HELP)
 
 def log_action(action, logger="habits"):
-    p = subprocess.run(["/usr/bin/log", logger], 
-        input=action+"\n", encoding='ascii')
-    assert p.returncode == 0
+    LOG="/usr/bin/log"
+    if os.path.exists(LOG):
+        p = subprocess.run([LOG, logger], input=action+"\n", encoding='ascii')
+        assert p.returncode == 0
 
 def get_keystroke():
     import tty, sys, termios
