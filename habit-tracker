@@ -9,41 +9,42 @@ habits [OPTIONS]
     -i, --interactive: interactively print the status and allow single-key logging
 """
 
+HIDE = "hide"
+NO_TARGET = "no_target"
 ACTIONS_SOURCE = [
     # This is the display order for timers and keys
-    # key, id,          description,            target_period, timer_shown
-    ("w", "wake",       "wake up",              "1d", True),
-    ("s", "sit",        "sit up / sit down",    "1d", True),
-    ("d", "data",       "data log, morning",    "1d", True),
-    ("t", "teeth",      "teeth, brush",         "1d", True),
-    ("m", "medicine",   "medicine, take",       "1d", True),
-    ("v", "vegetable",  "vegetable, eat a",     "1d", True),
-    ("u", "stand",      "stand up",             "1d", True),
-    ("a", "ankle",      "ankle exercise, do",   "1d", True),
+    # key, logging_id,  text,             target_period
+    ("w", "wake",       "wake",           "1d"),
+    ("s", "sit",        "sit",            "1d"),
+    ("c", "caffine",    "caffine",        NO_TARGET),
+    ("d", "data",       "data log",       "1d"),
+    ("t", "teeth",      "teeth",          "1d"),
+    ("m", "medicine",   "medicine",       "1d"),
+    ("v", "vegetable",  "vegetable",      "1d"),
+    ("u", "stand",      "u stand",        "1d"),
+    ("o", "outside",    "outside",        "1d"),
+    ("e", "exercise",   "exercise",       "1d"),
 
-    ("g", "walk",       "go on a walk",         "1w", True),
-    ("e", "exercise",   "exercise strenuously", "5d", True),
-    ("j", "shave",      "shave",                "1w", True),
+    ("g", "walk",       "go on walk",     "2d"),
+    ("j", "jshave",     "j shave",        "1w"),
+    ("z", "meditate",   "zen (meditate)", "2d"),
 
-    ("l", "lay",        "lay down",             None, False),
-    ("c", "carrot",     "carrot juice, drink",  None, False),
-    ("b", "broccoli",   "broccoli, eat",        None, False),
-    ("h", "shower",     "shower, take a",       None, False),
-
-    ("q", "quit",       "quit this program",    None, False),
-    #("x", "test", "test action", None),
+    ("q", "quit",       "quit",           HIDE),
+    #("x", "test", "test action", HIDE),
 ]
 assert all(len(x) == len(ACTIONS_SOURCE[0]) for x in ACTIONS_SOURCE)
 ACTIONS = [a[1] for a in ACTIONS_SOURCE]
 ACTION_TO_KEY = { a[1]: a[0] for a in ACTIONS_SOURCE }
-ACTION_TIMER_SHOWN = { a[1]: a[4] for a in ACTIONS_SOURCE }
-DESCRIPTIONS = { a[1]: a[2] for a in ACTIONS_SOURCE }
-PERIODS = { a[1]: a[3] for a in ACTIONS_SOURCE }
+ACTION_TO_TEXT = { a[1]: a[2] for a in ACTIONS_SOURCE }
+ACTION_TO_PERIOD = { a[1]: a[3] for a in ACTIONS_SOURCE }
 
-KEYS = { a[0]: a[1] for a in ACTIONS_SOURCE }
+KEY_TO_ACTION = { a[0]: a[1] for a in ACTIONS_SOURCE }
+del ACTIONS_SOURCE
+
 WIDTH=80
-assert len(set(KEYS.keys())) == len(ACTIONS_SOURCE)
-assert all(x in string.ascii_lowercase for x in KEYS.keys())
+assert len(set(KEY_TO_ACTION.keys())) == len(ACTIONS), "Duplicate keystroke present"
+assert all(x in string.ascii_lowercase for x in KEY_TO_ACTION.keys()), "Keystrokes should be lowercase letters"
+assert all(ACTION_TO_TEXT[a][0] == ACTION_TO_KEY[a] for a in ACTIONS), "Text should start with the keystroke"
 
 COLORS = {
     "grey": "\x1b[90m",
@@ -104,10 +105,10 @@ def parse_time(period):
     }[unit]
 
 def due_status(action, state):
-    period = PERIODS[action]
-    if period is None:
+    period = ACTION_TO_PERIOD[action]
+    if period in (NO_TARGET, HIDE):
         return "grey"
-    if period[-1] in "dwy":
+    elif period[-1] in "dwy":
         # Use a day-based calculation
         if state[action] is None:
             return "red"
@@ -143,7 +144,8 @@ def print_status(state, usecolor=None):
     current_time = time.time()
     l = []
     for action in ACTIONS:
-        if not ACTION_TIMER_SHOWN[action]:
+        period = ACTION_TO_PERIOD[action]
+        if period == HIDE:
             continue
         status = due_status(action, state)
         if state[action] is None:
@@ -153,7 +155,7 @@ def print_status(state, usecolor=None):
         t = readable_time(elapsed_seconds) + ("*" if (status in ["yellow", "red"] and not usecolor) else "")
         readable_action = "{action:<{action_len}}".format(action=action, action_len=action_len)
         l.append((
-            readable_action, elapsed_seconds, t, status, PERIODS[action],
+            readable_action, elapsed_seconds, t, status, period,
         ))
     # Optionally sort l by something other than default order
     for action, _, t, status, _ in l:
@@ -167,9 +169,8 @@ def print_record(record):
 
 def print_help(color=None):
     #SUFFIX = "xq"
-    #keys = sorted(k for k in KEYS if k not in SUFFIX) + [k for k in SUFFIX if k in KEYS]
     keys = [ACTION_TO_KEY[action] for action in ACTIONS]
-    desc_len = max(len(DESCRIPTIONS[KEYS[k]]) for k in keys)
+    desc_len = max(len(t) for t in ACTION_TO_TEXT.values())
     cols = WIDTH // (desc_len+3)
     rows = math.ceil(len(keys)/cols)
     for row in range(rows):
@@ -178,7 +179,7 @@ def print_help(color=None):
             if i < len(keys):
                 k = keys[i]
                 output(k+" ", color="key")
-                output("{desc:<{desc_len}}".format(desc=DESCRIPTIONS[KEYS[k]], desc_len=desc_len), color="grey")
+                output("{desc:<{desc_len}}".format(desc=ACTION_TO_TEXT[KEY_TO_ACTION[k]], desc_len=desc_len), color="grey")
                 output(" ")
         output("\n")
 
@@ -209,7 +210,7 @@ def get_action():
     output("do what? ")
     sys.stdout.flush()
     ks = get_keystroke()
-    return KEYS.get(ks)
+    return KEY_TO_ACTION.get(ks)
 
 def load_state(statefile="/home/zachary/.habits/state.json"):
     state_load = {}
