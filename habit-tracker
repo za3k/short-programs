@@ -27,7 +27,7 @@ ACTIONS_SOURCE = [
 
     ("g", "walk",       "go on walk",     "2d"),
     ("j", "jshave",     "j shave",        "1w"),
-    ("z", "meditate",   "zen (meditate)", "2d"),
+    ("z", "meditate",   "zen med.",       "2d"),
 
     ("q", "quit",       "quit",           HIDE),
     #("x", "test", "test action", HIDE),
@@ -137,29 +137,31 @@ def due_status(action, state):
     else:
         assert False
 
-def print_status(state, usecolor=None):
+def print_status(state, keys, usecolor=None):
     if usecolor is None:
         usecolor = default_color()
-    action_len = max(len(a) for a in ACTIONS) + 1
+    action_len = max(len(a) for a in ACTION_TO_TEXT.values()) + 1
     current_time = time.time()
     l = []
     for action in ACTIONS:
         period = ACTION_TO_PERIOD[action]
-        if period == HIDE:
-            continue
+        key = ACTION_TO_KEY[action]
         status = due_status(action, state)
         if state[action] is None:
             elapsed_seconds = None
         else:
             elapsed_seconds = int(current_time - state[action])
         t = readable_time(elapsed_seconds) + ("*" if (status in ["yellow", "red"] and not usecolor) else "")
-        readable_action = "{action:<{action_len}}".format(action=action, action_len=action_len)
+        if period == HIDE:
+            t = ""
+        readable_action = "{action:<{action_len}}".format(action=ACTION_TO_TEXT[action], action_len=action_len)
         l.append((
-            readable_action, elapsed_seconds, t, status, period,
+            key, readable_action, elapsed_seconds, t, status, period,
         ))
     # Optionally sort l by something other than default order
-    for action, _, t, status, _ in l:
-        output(action + t + "\n", color=status)
+    for key, action, _, t, status, _ in l:
+        output(key, color="key")
+        output(action[1:] + t + "\n", color=status)
 
 def print_record(record):
     output("".join([ACTION_TO_KEY[a] for a in record]), color="blue")
@@ -178,7 +180,6 @@ def print_help(color=None):
             i = col*rows + row
             if i < len(keys):
                 k = keys[i]
-                output(k+" ", color="key")
                 output("{desc:<{desc_len}}".format(desc=ACTION_TO_TEXT[KEY_TO_ACTION[k]], desc_len=desc_len), color="grey")
                 output(" ")
         output("\n")
@@ -243,11 +244,9 @@ def interactive_loop(reload_after_action=False):
     state = load_state()
     while True:
         clear_screen()
-        print_status(state)
+        print_status(state, keys=True)
         output("\n")
         print_record(record)
-        output("\n")
-        print_help()
         output("\n")
         action = get_action()
         if action is None:
@@ -278,7 +277,7 @@ if __name__ == "__main__":
             sys.exit(1)
     elif len(args) == 1 and args[0] in ["-s", "--status"]:
         state = load_state()
-        print_status(state)
+        print_status(state, keys=False)
         sys.exit(0)
     else:
         print("invalid arguments", args)
