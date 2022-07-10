@@ -1,0 +1,379 @@
+#!/usr/bin python3
+from typing import Optional
+import os, pwd, re
+from pathlib import Path
+
+FILE_CHARS = r'[-\'½%_$&:#()?,+. a-zA-Z0-9]+'
+DIR_CHARS =  r'[-\'½%_$&:#()?,+. a-zA-Z0-9]+'
+VIDEO_EXTENSION = r'.*.(avi|mkv|mp4|m4v|flv|ogm|swf|wmv|mov|rmvb|mpg|      |srt|smi|ass|ssa)'
+IGNORED_DIRS = [".unwanted", "000_Movies", "Season K", "Dragon Ball Z Movies (1993-2018)"]
+NON_SEASONS = ["Movies", "Extras", "Shorts", "Specials", "OVA"]
+STANDARD_FORMAT = r"(.* - (?:{})( - .*|))\.[a-z0-9]{{3,4}}|.*.txt"
+STANDARD_FORMAT_EASY = STANDARD_FORMAT.format(".*")
+TV_EPISODE = r"S(\d\d(\.\d)?|xx)[EX]\d{2,3}(|[abc]|\.\d)(|(-)E?\d{2,3})?"
+TV_EPISODE_FORMAT = STANDARD_FORMAT.format(TV_EPISODE)
+ANIME_EPISODE = TV_EPISODE + "|" + r"(|ep)\d+(-\d+)?" # anime is allowed to number with ep01 or 01. TV is not.
+ANIME_EPISODE_FORMAT = STANDARD_FORMAT.format(ANIME_EPISODE)
+
+MOVIE_PROBLEMS= {
+    FILE_CHARS: "Invalid character",
+    VIDEO_EXTENSION: "Extension doesn't look like a movie",
+    r'''.* \(\d{4}\)\..*''': "No year given",
+}
+
+ANIME_SHOW_PROBLEMS = {
+    DIR_CHARS: "Invalid character",
+    r'''.* \(\d{4}-(?:\d{4})?(?:,incomplete)?\)''': "No year given",
+}
+ANIME_SEASON_PROBLEMS = {
+    DIR_CHARS: "Invalid character",
+    "(Arc|Season|Series) \d+(\.\d)?( .*)?": "Season looks weird",
+}
+ANIME_EPISODE_PROBLEMS = {
+    FILE_CHARS: "Invalid character",
+    VIDEO_EXTENSION: "Extension doesn't look like a movie",
+    STANDARD_FORMAT_EASY: "Not in standard format",
+    ANIME_EPISODE_FORMAT: "Not in standard format",
+}
+
+TV_SHOW_PROBLEMS = {
+    DIR_CHARS: "Invalid character",
+    r'''.* \((?:\d{4}-\d{4},)*\d{4}-(?:\d{4})?(,incomplete)?\)''': "No year given",
+}
+TV_SEASON_PROBLEMS = {
+    DIR_CHARS: "Invalid character",
+    "(Season|Series) \d+( .*)?": "Season looks weird",
+}
+TV_EPISODE_PROBLEMS = {
+    FILE_CHARS: "Invalid character",
+    VIDEO_EXTENSION: "Extension doesn't look like a movie",
+    STANDARD_FORMAT_EASY: "Not in standard format",
+    TV_EPISODE_FORMAT: "Not in standard format",
+}
+
+class Linter():
+    def __init__(self, videos):
+        self.videos = Path(videos)
+        self.problem_files = set()
+        self.problem_folders = set()
+        self.log = []
+        self.Z = pwd.getpwnam("zachary")
+    def lint(self):
+        self.lint_movies(self.videos / "movies")
+        self.lint_anime(self.videos / "anime")
+        self.lint_movies(self.videos / "anime" / "000_Movies")
+        self.lint_tv(self.videos / "tv_shows")
+        self.lint_torrents(self.videos / "torrents")
+        self.print()
+    def print(self):
+        print("problems: ", len(self.log))
+        print("problem files: ", len(self.problem_files))
+        print("problem folders: ", len(self.problem_folders))
+        self.log.sort()
+        for x in self.log:
+            print(x)
+    def warn(self, problem: str, s: Path, top: Path, severity="warn"):
+        out = "[{}][{}] {}: {}".format(severity, top.name, problem, s.relative_to(top))
+        if out not in BLACKLIST:
+            self.problem_files.add(s)
+            self.problem_folders.add(s.parent)
+            self.log.append(out)
+    def empty(self, s: Path):
+        try:
+            x = next(s.iterdir())
+        except StopIteration:
+            return True
+        return False
+    def error(self, problem: str, s: Path, top: Path):
+        self.warn(problem, s, top, severity="error")
+    def check_problems(self, problems, s: Path, top: Path):
+        assert isinstance(s, Path)
+        assert isinstance(top, Path)
+        for REGEX, PROBLEM in problems.items():
+            m = re.fullmatch(REGEX, s.name)
+            if not m:
+                self.warn(PROBLEM, s, top)
+                return # Stop after one so we can add very specific regexes
+    def lint_files(self, cdir: Path, top: Optional[Path]=None):
+        if top is None:
+            top = cdir
+        for x in cdir.iterdir():
+            if x.name.startswith("."):
+                continue
+            s = os.stat(x)
+            permissions = s.st_mode
+            if x.is_file() and (permissions & 0o777) != 0o644:
+                self.warn("File should be 644, not " + str(oct(permissions & 0o777)), x, top)
+            elif x.is_dir() and (permissions & 0o777) != 0o755:
+                self.warn("Directory should be 755, not " + str(oct(permissions & 0o777)), x, top)
+            if not (s.st_uid == self.Z.pw_uid and s.st_gid == self.Z.pw_gid):
+                self.warn("Should be owned by zachary:zachary", x, top)
+            if x.is_dir():
+                self.lint_files(x, top)
+        
+    def lint_movies(self, cdir: Path, movies: Optional[Path]=None):
+        if movies is None:
+            movies = cdir
+        self.lint_files(movies, self.videos)
+        for x in movies.iterdir():
+            if x.is_file():
+                self.check_problems(MOVIE_PROBLEMS, x, movies)
+            else:
+                self.warn("Directory in root", x, movies)
+                self.lint_movies(movies, x)
+                continue
+    def lint_tv(self, tv: Path):
+        self.lint_files(tv, self.videos)
+        for x in tv.iterdir():
+            if x.is_file():
+                self.warn("File in root", x, tv)
+                continue
+            elif x.name in IGNORED_DIRS:
+                continue
+            tv_show = x
+            self.check_problems(TV_SHOW_PROBLEMS, tv_show, tv)
+            for x in tv_show.iterdir():
+                if x.is_file():
+                    # Episode
+                    self.check_problems(TV_EPISODE_PROBLEMS, x, tv)
+                elif x.name in IGNORED_DIRS+NON_SEASONS:
+                    pass
+                else:
+                    # Season
+                    season = x
+                    self.check_problems(TV_SEASON_PROBLEMS, season, tv)
+                    for x in season.iterdir():
+                        if x.is_file():
+                            # Episode
+                            self.check_problems(TV_EPISODE_PROBLEMS, x, tv)
+                        elif x.name in IGNORED_DIRS:
+                            pass
+                        else:
+                            self.error("Deeply nested tv directory", x, tv)
+                    if self.empty(season):
+                        self.error("Empty directory", season, tv)
+            if self.empty(tv_show):
+                self.error("Empty directory", tv_show, tv)
+    def lint_anime(self, anime: Path):
+        self.lint_files(anime, self.videos)
+        for x in anime.iterdir():
+            if x.is_file():
+                self.warn("File in root", x, anime)
+                continue
+            elif x.name in IGNORED_DIRS:
+                continue
+            show = x
+            self.check_problems(ANIME_SHOW_PROBLEMS, show, anime)
+            for x in show.iterdir():
+                if x.is_file():
+                    # Episode
+                    self.check_problems(ANIME_EPISODE_PROBLEMS, x, anime)
+                elif x.name in IGNORED_DIRS+NON_SEASONS:
+                    pass
+                else:
+                    # Season
+                    season = x
+                    self.check_problems(ANIME_SEASON_PROBLEMS, season, anime)
+                    for x in season.iterdir():
+                        if x.is_file():
+                            # Episode
+                            self.check_problems(ANIME_EPISODE_PROBLEMS, x, anime)
+                        elif x.name in IGNORED_DIRS:
+                            pass
+                        else:
+                            self.error("Deeply nested directory", x, anime)
+                    if self.empty(season):
+                        self.error("Empty directory", season, anime)
+    def lint_torrents(self, torrents: Path):
+        s = os.stat(torrents)
+        permissions = s.st_mode
+        T = pwd.getpwnam("transmission")
+
+        if (permissions & 0o777) != 0o755:
+            self.warn("Directory should be 755, not " + str(oct(permissions & 0o777)), torrents, torrents)
+        if not (s.st_uid == T.pw_uid and s.st_gid == T.pw_gid):
+            self.warn("Should be owned by transmission:transmission", torrents, torrents)
+
+        for x in torrents.iterdir():
+            if x.name in ["DONT_CHANGE_FOLDER_PERMISSIONS", "incomplete"]:
+                continue
+            self.warn("Tidy away torrent", x, torrents)
+
+# All of these have been manually checked and are OK.
+BLACKLIST = '''
+[warn][000_Movies] Directory in movies: Studio Ghibli 1984-2014
+[warn][000_Movies] Directory in root: Studio Ghibli 1984-2014
+[warn][anime] Extension doesn't look like a movie: Mardock Scramble (2010-2012)/fenn.txt
+[warn][anime] Extension doesn't look like a movie: Naruto Kai (2002-2007)/Readme.txt
+[warn][anime] File in root: Casshern - The Movie (2004).mkv
+[warn][anime] File in root: Toradora OVA - True Meaning of Bento (2011).mp4
+[warn][anime] Not in standard format: Ghost in the Shell (1995-2005,incomplete)/Ghost in the Shell (1995).avi
+[warn][anime] Not in standard format: Ghost in the Shell (1995-2005,incomplete)/Ghost in the Shell 2 Innocence (2004).avi
+[warn][anime] Not in standard format: IOSYS - Touhou Parodies (2006-2006)/IOSYS_tohootomebayashi_loving.swf
+[warn][anime] Not in standard format: IOSYS - Touhou Parodies (2006-2006)/IOSYS_tohotsukitoro.swf
+[warn][anime] No year given: 000_Movies
+[warn][anime] Season looks weird: Food Wars (2015-)/Plate 1 P1+P2
+[warn][anime] Season looks weird: Food Wars (2015-)/Plate 2
+[warn][anime] Season looks weird: Food Wars (2015-)/Plate 3 P1+P2
+[warn][anime] Season looks weird: Food Wars (2015-)/Plate 4
+[warn][anime] Season looks weird: Ghost in the Shell (1995-2005,incomplete)/Ghost in the Shell Stand Alone Complex (2002-2003)
+[warn][anime] Season looks weird: Ghost in the Shell (1995-2005,incomplete)/Ghost in the Shell Stand Alone Complex 2nd GiG (2004-2005)
+[warn][anime] Season looks weird: Magic User's Club (1999-1999)/Maho Tsukai Tai (2017)
+[warn][anime] Season looks weird: Naruto Kai (2002-2007)/Shinden 1 - Itachi Shinden - Book of Light and Darkness
+[warn][movies] Directory in root: Disney Movies
+[warn][movies] Directory in root: James Bond
+[warn][tv_shows] Extension doesn't look like a movie: Code Monkeys (2007-2008)/Episode Guide.txt
+[warn][tv_shows] Extension doesn't look like a movie: Lexx (1997-2002)/AboutLEXX.txt
+[warn][tv_shows] Extension doesn't look like a movie: Lexx (1997-2002)/TheEpisodesofLexx.txt
+[warn][tv_shows] Extension doesn't look like a movie: Lucy, the Daughter of the Devil (2007-2007)/Lucy, the Daughter of the Devil - Season 1 (Episode Guide).txt
+[warn][tv_shows] Not in standard format: Farscape (1999-2003)/The Peacekeeper Wars/Farscape - The Peacekeeper Wars TSV.mkv
+[warn][tv_shows] Not in standard format: The Guild (2007-2012)/Season 1.mp4
+[warn][tv_shows] Not in standard format: The Guild (2007-2012)/Season 2.mp4
+[warn][tv_shows] Not in standard format: The Guild (2007-2012)/Season 3.mp4
+[warn][tv_shows] Not in standard format: The Guild (2007-2012)/Season 4.mp4
+[warn][tv_shows] Not in standard format: The Guild (2007-2012)/Season 5.mp4
+[warn][tv_shows] Not in standard format: The Guild (2007-2012)/Season 6.mp4
+[warn][tv_shows] Not in standard format: What We Do in the Shadows (2019-)/What We Do in the Shadows (2014).mp4
+[warn][tv_shows] Not in standard format: Yes, Minister (1980-1984)/Party Games (1984).mkv
+[warn][tv_shows] Season looks weird: Adventure Time (2010-2018)/Pilot
+[warn][tv_shows] Season looks weird: Avatar - The Last Airbender (2005-2008)/Book 1 - Water
+[warn][tv_shows] Season looks weird: Avatar - The Last Airbender (2005-2008)/Book 2 - Earth
+[warn][tv_shows] Season looks weird: Avatar - The Last Airbender (2005-2008)/Book 3 - Fire
+[warn][tv_shows] Season looks weird: Farscape (1999-2003)/The Peacekeeper Wars
+[warn][anime] Not in standard format: AMV Hell (2004-2014,incomplete)/AMV Hell - ep6.66 - This Is (Not) The End (2013).mp4
+[warn][anime] Not in standard format: Mardock Scramble (2010-2012)/Mardock Scramble - The First Compression.mp4
+[warn][anime] Not in standard format: Mardock Scramble (2010-2012)/Mardock Scramble - The Second Combustion.mp4
+[warn][anime] Not in standard format: Mardock Scramble (2010-2012)/Mardock Scramble - The Third Exhaust.mp4
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/01 - Hitagi Crab, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/02 - Hitagi Crab, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/03 - Mayoi Snail, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/04 - Mayoi Snail, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/05 - Mayoi Snail, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/06 - Suruga Monkey, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/07 - Suruga Monkey, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/08 - Suruga Monkey, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/09 - Nadeko Snake, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/10 - Nadeko Snake, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/11 - Tsubasa Cat, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/12 - Tsubasa Cat, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/13 - Tsubasa Cat, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/14 - Tsubasa Cat, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.1 - Bakemonogatari/15 - Tsubasa Cat, Part Five.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/01 - Karen Bee, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/02 - Karen Bee, Part Two .mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/03 - Karen Bee, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/04 - Karen Bee, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/05 - Karen Bee, Part Five.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/06 - Karen Bee, Part Six.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/07 - Karen Bee, Part Seven.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/08 - Tsukihi Phoenix, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/09 - Tsukihi Phoenix, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/10 - Tsukihi Phoenix, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.2 - Nisemonogatari/11 - Tsukihi Phoenix, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.3 - Nekomonogatari (Black)/01 - Tsubasa Family, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.3 - Nekomonogatari (Black)/02 - Tsubasa Family, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.3 - Nekomonogatari (Black)/03 - Tsubasa Family, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.3 - Nekomonogatari (Black)/04 - Tsubasa Family, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.4 - Kizumonogatari/01 - Iron Blood.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.4 - Kizumonogatari/02 - Hot Blood.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 1.4 - Kizumonogatari/03 - Cold Blood.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.1 - Nekomonogatari (White)/01 - Tsubasa Tiger, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.1 - Nekomonogatari (White)/02 - Tsubasa Tiger, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.1 - Nekomonogatari (White)/03 - Tsubasa Tiger, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.1 - Nekomonogatari (White)/04 - Tsubasa Tiger, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.1 - Nekomonogatari (White)/05 - Tsubasa Tiger, Part Five.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.2 - Kabukimonogatari/01 - Mayoi Jiangshi, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.2 - Kabukimonogatari/02 - Mayoi Jiangshi, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.2 - Kabukimonogatari/03 - Mayoi Jiangshi, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.2 - Kabukimonogatari/04 - Mayoi Jiangshi, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.3 - Otorimonogatari/01 - Nadeko Medusa, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.3 - Otorimonogatari/02 - Nadeko Medusa, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.3 - Otorimonogatari/03 - Nadeko Medusa, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.3 - Otorimonogatari/04 - Nadeko Medusa, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.4 - Onimonogatari/01 - Shinobu Time, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.4 - Onimonogatari/02 - Shinobu Time, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.4 - Onimonogatari/03 - Shinobu Time, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.4 - Onimonogatari/04 - Shinobu Time, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.5 - Koimonogatari/01 - Hitagi End, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.5 - Koimonogatari/02 - Hitagi End, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.5 - Koimonogatari/03 - Hitagi End, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.5 - Koimonogatari/04 - Hitagi End, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.5 - Koimonogatari/05 - Hitagi End, Part Five.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.5 - Koimonogatari/06 - Hitagi End, Part Six.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.6 - Hanamonogatari/01 - Suruga Devil, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.6 - Hanamonogatari/02 - Suruga Devil, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.6 - Hanamonogatari/03 - Suruga Devil, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.6 - Hanamonogatari/04 - Suruga Devil, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 2.6 - Hanamonogatari/05 - Suruga Devil, Part Five.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.1 - Tsukimonogatari/01 - Yotsugi Doll, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.1 - Tsukimonogatari/02 - Yotsugi Doll, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.1 - Tsukimonogatari/03 - Yotsugi Doll, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.1 - Tsukimonogatari/04 - Yotsugi Doll, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/01 - Ougi Formula.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/02 - Sodachi Riddle, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/03 - Sodachi Riddle, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/04 - Sodachi Lost, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/05  - Sodachi Lost, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/06 - Sodachi Lost, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/07 - Shinobu Mail, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/08 - Shinobu Mail, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/09 - Shinobu Mail, Part Three.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/10 - Shinobu Mail, Part Four.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/11 - Shinobu Mail, Part Five.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.2 - Owarimonogatari I/12 - Shinobu Mail, Part Six.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/01 - Koyomi Stone.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/02 - Koyomi Flower.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/03 - Koyomi Sand.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/04 - Koyomi Water.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/05 - Koyomi Wind.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/06 - Koyomi Tree.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/07 - Koyomi Tea.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/08 - Koyomi Mountain.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/09 - Koyomi Torus.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/10 - Koyomi Seed.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/11 - Koyomi Nothing.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.3 - Koyomimonogatari/12 - Koyomi Dead.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/01 - Mayoi Hell, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/02 - Mayoi Hell, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/03 - Hitagi Rendezvous, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/04 - Hitagi Rendezvous, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/05 - Ougi Dark, Part One.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/06 - Ougi Dark, Part Two.mkv
+[warn][anime] Not in standard format: Monogatari (2009-)/Season 3.4 - Owarimonogatari II/07 - Ougi Dark, Part Three.mkv
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Naruto - 27 A - Day of Departure.mkv
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Naruto - 27 B - Kakashi Chronicles.mkv
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Naruto the Movie 7 - The Last (2014).mkv
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Omake - Kakashi Sensei's Real Face.mp4
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Scroll of Wind - The Real True Face....mp4
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Shinden 1 - Itachi Shinden - Book of Light and Darkness/Itachi Shinden Part 1 - Book of Bright Light.mkv
+[warn][anime] Not in standard format: Naruto Kai (2002-2007)/Shinden 1 - Itachi Shinden - Book of Light and Darkness/Itachi Shinden Part 2 - Book of Dark Night.mkv
+[warn][anime] Not in standard format: No Game No Life (2014-2014)/No Game No Life - Zero (2017).mkv
+[warn][anime] Not in standard format: Noragami - Noragami Aragoto (2015-2015)/Noragami Aragoto - ep06.5 - Noragami OVA 01.mp4
+[warn][anime] Not in standard format: Noragami - Noragami Aragoto (2015-2015)/Noragami Aragoto - ep06.6 - Noragami OVA 02.mp4
+[warn][anime] Not in standard format: Noragami - Noragami Aragoto (2015-2015)/Noragami Aragoto - ep06.7 - Noragami Aragato OVA 01.mp4
+[warn][anime] Not in standard format: Non Non Biyori (2013-2013)/Season 1/Non Non Biyori - OVA.mkv
+[warn][anime] Not in standard format: Non Non Biyori (2013-2013)/Season 2/Non Non Biyori - S02E13 OVA.mkv
+[warn][anime] Not in standard format: Outlaw Star (1998-1988)/Outlaw Star - Pilot.mkv
+[warn][anime] Not in standard format: Psycho-Pass (2012-)/Psycho-Pass - Movie.mkv
+[warn][anime] Not in standard format: Royal Tutor Haine (2017-2017)/Royal Tutor Haine - movie.mkv
+[warn][anime] Not in standard format: Tiny Little Life in the Woods (2018-2018)/Tiny Little Life in the Woods - S01 OVA.mp4
+[warn][anime] Not in standard format: Mushi-Shi 2 (2014-2014)/Mushishi Special Episode - Hihamukage.mp4
+[warn][anime] Not in standard format: Sayonara Zetsubou Sensei (2007-2007)/Season 1/Sayonara Zetsubou Sensei - Preface.avi
+[warn][anime] Not in standard format: SteinsGate (2011-2011)/SteinsGate Movie - Load Region of Deja Vu.mkv
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP01.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP02.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP03.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP04.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP05.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP06.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP07.mp4
+[warn][anime] Not in standard format: Accel World (2012-2012)/Accel World - SP08.mp4
+[warn][anime] Not in standard format: Bunny Drop (2011-2011)/Bunny Drop - OVA1.mkv
+[warn][anime] Not in standard format: Bunny Drop (2011-2011)/Bunny Drop - OVA2.mkv
+[warn][anime] Not in standard format: Bunny Drop (2011-2011)/Bunny Drop - OVA3.mkv
+[warn][anime] Not in standard format: Bunny Drop (2011-2011)/Bunny Drop - OVA4.mkv
+'''.split("\n")
+
+if __name__ == '__main__':
+    l = Linter("/data/video")
+    l.lint()

@@ -402,6 +402,10 @@ timer
 ---
 Kitchen timer for the command line
 
+video-linter
+---
+Check whether videos are correctly renamed and organized. Only useful to me.
+
 watch-to-file
 ---
 Like 'watch', but outputs to a file instead of a TTY
