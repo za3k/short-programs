@@ -19,6 +19,7 @@ ACTIONS_SOURCE = [
     ("c", "caffine",    "caffine",        NO_TARGET),
     ("d", "data",       "data log",       "1d"),
     ("t", "teeth",      "teeth",          "1d"),
+    ("f", "floss",      "floss or die",   "1d"),
     ("m", "medicine",   "medicine",       "1d"),
     ("v", "vegetable",  "vegetable",      "1d"),
     ("u", "stand",      "u stand",        "1d"),
@@ -27,7 +28,7 @@ ACTIONS_SOURCE = [
 
     ("g", "walk",       "go on walk",     "2d"),
     ("j", "jshave",     "j shave",        "1w"),
-    ("z", "meditate",   "zen med.",       "2d"),
+    ("z", "meditate",   "zen med.",       "1w"),
 
     ("q", "quit",       "quit",           HIDE),
     #("x", "test", "test action", HIDE),
