@@ -11,4 +11,4 @@ SECONDS=$((60 * $1))
 END=$(($START + $SECONDS))
 unset SECONDS
 
-watch -n1 -t "./time_diff $END \`date +%s\`"
+watch -n1 -t "time_diff $END \`date +%s\`"
