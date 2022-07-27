@@ -9,7 +9,7 @@ def load_review():
         current_date = datetime.datetime.strptime(current_date, DATE_FORMAT)
     else:
         current_date=datetime.date.today()
-    fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
+        fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
     if not os.path.exists(fp):
         fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date.strftime(DATE_FORMAT))
     with open(fp, "r") as f:
@@ -41,7 +41,8 @@ def parse_finance_page(finance_page):
     for line in finance_page[1:]:
         assert "--page" not in line
         date, place, amount, hand_total, thing = line[:10], line[28:48].strip(), line[48:57].strip(), line[57:65].strip(), line[66:].strip()
-        total += float(amount)
+        if "error" != place:
+            total += float(amount)
         hand_total = float(hand_total)
         print("| {date:<11}| {place:<14}|{amount:>11} | {category:<14}| {thing}".format(date=date, place=place, amount=amount, category="", thing=thing))
     return total, hand_total
