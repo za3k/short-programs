@@ -27,7 +27,7 @@ ACTIONS_SOURCE = [
     ("e", "exercise",   "exercise",       "1d"),
 
     ("g", "walk",       "go on walk",     "2d"),
-    ("j", "jshave",     "j shave",        "1w"),
+    ("h", "jshave",     "h sHave",        "1w"),
     ("z", "meditate",   "zen med.",       "1w"),
 
     ("q", "quit",       "quit",           HIDE),
