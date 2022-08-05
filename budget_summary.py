@@ -78,10 +78,10 @@ if __name__ == "__main__":
         finance_lines = load_finances()
         total, hand_total = parse_week(finance_lines, None) # ALWAYS returns the latest week
         print()
-        if (total - hand_total) < 0.005:
+        if abs(total - hand_total) < 0.005:
             print("Total was correct, {}".format(hand_total))
         else:
-            print("Correct total should be {}, was {}".format(total, hand_total))
+            print("Correct total should be {:.2f}, was {:.2f}".format(total, hand_total))
     else: # Budget is done yet
         print("{: <12} {:.2f}".format("Total:", sum(amount for (amount, category) in budget_items)))
         print("{: <12} {:.2f}".format("Total (no rent):", sum(amount for (amount, category) in budget_items if category != "Rent")))
