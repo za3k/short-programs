@@ -173,6 +173,8 @@ habit-tracker
 ---
 Useful only to me. Tracks whether I do things like brush my teeth once a day, shave regularly, etc.
 
+![habit-tracker screenshot](habit-tracker.png)
+
 Usage: `habit-tracker`
 
 hours
