@@ -171,9 +171,11 @@ Usage:
 
 habit-tracker
 ---
+![habit-tracker screenshot](habit-tracker.png)
+
 Useful only to me. Tracks whether I do things like brush my teeth once a day, shave regularly, etc.
 
-![habit-tracker screenshot](habit-tracker.png)
+Red is overdue, blue is "do today", green is "done recently", and grey is "no specific goals".
 
 Usage: `habit-tracker`
 
