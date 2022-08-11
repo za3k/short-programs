@@ -175,7 +175,7 @@ habit-tracker
 
 Useful only to me. Tracks whether I do things like brush my teeth once a day, shave regularly, etc.
 
-Red is overdue, blue is "do today", green is "done recently", and grey is "no specific goals".
+On the left is the habit; on the right is how long since I've done that. You press a single key to say "I did this task". Colors? Red is overdue, blue is "do today", green is "done recently", and grey is "no specific goals".
 
 Usage: `habit-tracker`
 
