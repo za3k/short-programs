@@ -324,6 +324,14 @@ random
 ---
 Print a random line out of a file
 
+record-shell
+---
+Records all interactive shells using [script](https://en.wikipedia.org/wiki/Script_(Unix)). To use, add the magic line given to the top of your .bashrc (record-shell works on all shells, but the invocation line may need to be changed slightly for each shell)
+
+Note that this can record SSH sessions, sudo session etc fine. However by default it does not include input (typed passwords etc).
+
+Records to /var/log/console-recording/$USER/$DATE.log
+
 retry
 ---
 Retry a command 5 times or until it succeeds
@@ -335,10 +343,14 @@ Rolls D&D dice.
 Usage:
 
     roll "d6 + 4"
+    roll d6 + 4
+    roll 2d10
 
 Output:
 
     1d6+4 = 8
+    1d6+4 = 6
+    2d10+0 = 19
 
 rtmux
 ---
