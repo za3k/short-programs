@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ $# -ne 2 ]; then
+    echo "Usage: grep-percent TERM FILE" >&2
+    exit 1
+fi
+
+term="$1"
+file="$2"
+
+match_lines=`grep "$1" "$2" | wc -l`
+file_lines=`wc -l <"$file"`
+
+echo "scale=2; 100 * $match_lines / $file_lines" | bc

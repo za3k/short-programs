@@ -150,6 +150,11 @@ fragile-treediff
 Usage: `fragile-treediff FOLDER1 FOLDER2`
 Returns a success or failure error code, depending on whether two folders are exactly identical.
 
+grep-percent
+---
+Usage: `grep-percent TERM FILE`
+Prints the percentage of lines that match the query (0 to 100)
+
 google
 ---
 Searches for something on google, opening the results page in the default browser.
