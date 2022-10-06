@@ -1,0 +1,13 @@
+#!/bin/python3
+import sys
+
+count = 0
+total = 0
+for line in sys.stdin.readlines():
+    total += float(line)
+    count += 1
+mean = total/count
+mean = round(mean, 8)
+if round(mean) == mean:
+    mean = int(mean)
+print(mean)
