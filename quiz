@@ -1,0 +1,19 @@
+#!/bin/python3
+"""
+Usage: quiz FILE.csv
+
+Interactively prompt the user to fill out a questionnaire. Reads the questions and writes the results to a CSV.
+
+Intended use is for daily, weekly, etc logging of something.
+"""
+import csv, io, readline, sys
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: quiz FILE.csv")
+    with open(sys.argv[1], 'r+', newline='') as csvfile:
+        headers = next(csv.reader(csvfile))
+        entry = [input(question + " ? ") for question in headers]
+        csvfile.seek(0, io.SEEK_END)
+        csv.writer(csvfile).writerow(entry)
+        print("Done.")

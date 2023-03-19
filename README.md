@@ -325,6 +325,14 @@ pushgh
 ---
 Push to an empty Github repo. Usage: `pushgh [USER] REPOSITORY`
 
+quiz
+---
+Record daily measurements, etc to a CSV file. Asks questions from the header row of the CSV.
+
+Usage:
+
+    quiz QUESTIONS.csv
+
 random
 ---
 Print a random line out of a file
