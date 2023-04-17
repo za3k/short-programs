@@ -29,6 +29,10 @@ battery
 ---
 Displays the current battery percentage as a short string for displays
 
+beepz
+---
+Sounds three beeps, even on devices with beep turned off.
+
 budget_summary
 ---
 Helper for za3k only. Summarizes budget categories typed in from my logbook

@@ -1,0 +1,1 @@
+for x in {1..3}; do play -q -r 44100 -c2 -n synth 0.5 50; sleep 0.5; done
