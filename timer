@@ -1,14 +1,70 @@
-#!/bin/bash
-START=$(date +%s)
+#!/usr/bin/env python3
+import os,re,sys,time
 
-if [ $# -ne 1 ]
-then
-    echo 'Usage: timer <minutes>'
-    exit 1
-fi
+USAGE = """
+USAGE: timer TIME
+EXAMPLES: timer 5m30s
+          timer 1 minute
+          timer 5 hours 3 minute
 
-SECONDS=$((60 * $1))
-END=$(($START + $SECONDS))
-unset SECONDS
+""".strip()
 
-watch -n1 -t "time_diff $END \`date +%s\`"
+# Wishlist:
+#  Beep until acknowledged. Show elapsed time after beeping started
+#  Support human-readable formats other than integer minutes. ex 5m40s
+
+class ParseException(Exception): pass
+def beep():
+    os.system("beep >/dev/null 2>/dev/null || beepz")
+def parse_time(arg): # minute only for now
+    SPACE = r'[ ,]*'
+    REGEX = re.compile(
+        SPACE +
+        r'(?:(?P<hours>\d+)(?:h|hour|hours))?' + SPACE +
+        r'(?:(?P<minutes>\d+)(?:m|min|mins|minute|minutes))?' + SPACE +
+        r'(?:(?P<seconds>\d+)(?:s|sec|secs|second|seconds))?' + SPACE
+    )
+    m = REGEX.fullmatch(arg)
+    print("hi", m)
+    if not m: raise ParseException("Unrecognized time format")
+    hours = int(m.group('hours') or 0)
+    minutes = int(m.group('minutes') or 0)
+    seconds = int(m.group('seconds') or 0)
+    t = seconds + minutes * 60 + hours * 3600
+    if t <= 0: raise ParseException("Unrecognized time format")
+    return t
+def astime(seconds):
+    minutes, seconds = seconds // 60, seconds % 60
+    hours, minutes = minutes // 60, minutes % 60
+    if hours > 0:
+        return "{}:{:02}:{:02}".format(hours,minutes,seconds)
+    else:
+        return "{:02}:{:02}".format(minutes,seconds)
+def print_status(total, elapsed):
+    remaining = total - elapsed
+    remaining, elapsed = round(remaining), round(elapsed)
+    sys.stdout.write("\033[F\033[K") # Cursor up one line
+
+    print("{} remaining, {} elapsed".format(astime(remaining),astime(elapsed)))
+    return remaining <= 0
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    if len(args) == 0:
+        print(USAGE, file=sys.stderr)
+        sys.exit(1)
+    try:
+        seconds = parse_time("".join(sys.argv[1:]))
+    except ParseException:
+        print(USAGE, file=sys.stderr)
+        print("Unrecognized time format: {}".format(sys.argv[1]), file=sys.stderr)
+        sys.exit(1)
+
+    start_time = float(time.time())
+    elapsed = float(time.time())-start_time
+    done = print_status(seconds, elapsed)
+    while not done:
+        time.sleep(1)
+        elapsed = float(time.time())-start_time
+        done = print_status(seconds, elapsed)
+    beep()

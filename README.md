@@ -435,6 +435,10 @@ timer
 ---
 Kitchen timer for the command line
 
+Example:
+
+    timer 5m30s
+
 video-linter
 ---
 Check whether videos are correctly renamed and organized. Only useful to me.
