@@ -262,6 +262,10 @@ This allows for fast startup, by executing a tmux configuration file as a progra
 ---
 Play randomly-generated noise through the speakers
 
+notify
+---
+Send a message that gets to me.
+
 onerng
 ---
 Outputs the (raw) random bytes from an OneRNG hardware device

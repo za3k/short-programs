@@ -1,0 +1,6 @@
+#!/bin/sh
+email() {
+ echo "Subject: $1" | /usr/lib/sendmail -v za3k@za3k.com
+}
+
+email "$1"
