@@ -24,7 +24,7 @@ ACTIONS_SOURCE = [
     ("v", "vegetable",  "vegetable",      "1d"),
     ("u", "stand",      "u stand",        "1d"),
     ("o", "outside",    "outside",        "1d"),
-    ("e", "exercise",   "exercise",       "1d"),
+    ("e", "exercise",   "exercise",       "2d"),
 
     ("g", "walk",       "go on walk",     "2d"),
     ("h", "jshave",     "h sHave",        "1w"),
