@@ -31,7 +31,11 @@ Displays the current battery percentage as a short string for displays
 
 beepz
 ---
-Sounds three beeps, even on devices with beep turned off.
+Sounds beeps, even on devices with beep turned off. Pseudo-rando beeps and says the reason.
+
+Usage:
+
+    beepz "Pomodoro"
 
 budget_summary
 ---
@@ -262,7 +266,7 @@ This allows for fast startup, by executing a tmux configuration file as a progra
 ---
 Play randomly-generated noise through the speakers
 
-notify
+notify2zak
 ---
 Send a message that gets to me.
 
