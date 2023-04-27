@@ -1,0 +1,25 @@
+# plank - 3m
+# squat+curl: 6m
+# lift + press: 3m
+case "$1" of)
+A|a)
+    echo "Not done"
+    ;;
+B|b
+    /home/zachary/.projects/short-programs/timer 1s\
+        plank 30s rest 30s \
+        plank 30s rest 30s \
+        plank 30s rest 30s \
+        "dumbbell squat" 1m "bicep curl" 90s \
+        "dumbbell squat" 1m "bicep curl" 90s \
+        "dumbbell squat" 1m "bicep curl" 90s \
+        rest 1m \
+        "straight leg deadlift" 90s "dumbbell shoulder press" 90s \
+        "straight leg deadlift" 90s "dumbbell shoulder press" 90s \
+        "straight leg deadlift" 90s "dumbbell shoulder press" 90s \
+        done # Routine B
+    ;;
+*)
+    echo "Not a valid routine"
+    ;;
+esac
