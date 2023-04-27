@@ -270,6 +270,10 @@ notify2zak
 ---
 Send a message that gets to me.
 
+Usage:
+    
+    cat tasks | xargs && notify2zak "long list of tasks done"
+
 onerng
 ---
 Outputs the (raw) random bytes from an OneRNG hardware device
