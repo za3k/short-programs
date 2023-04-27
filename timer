@@ -14,8 +14,11 @@ EXAMPLES: timer 5m30s pomodoro
 #  Support human-readable formats other than integer minutes. ex 5m40s
 
 class ParseException(Exception): pass
-def beep(reason):
-    os.system(f"beepz \"{reason}\" || beep &>/dev/null")
+def beep(reason=None):
+    if reason:
+        os.system(f"beepz \"{reason}\" || beep &>/dev/null")
+    else:
+        os.system("beepz || beep &>/dev/null")
 def parse_time(arg): # minute only for now
     SPACE = r'[ ,]*'
     REGEX = re.compile(
@@ -47,19 +50,13 @@ def print_status(total, elapsed):
     print("{} remaining, {} elapsed".format(astime(remaining),astime(elapsed)))
     return remaining <= 0
 
-if __name__ == '__main__':
-    args = sys.argv[1:]
-    if len(args) == 0:
-        print(USAGE, file=sys.stderr)
-        sys.exit(1)
+def wait(a):
     try:
-        seconds = parse_time(sys.argv[1])
+        seconds = parse_time(a)
     except ParseException:
         print(USAGE, file=sys.stderr)
         print("Unrecognized time format: {}".format(sys.argv[1]), file=sys.stderr)
         sys.exit(1)
-    reason = sys.argv[2] if len(sys.argv)>2 else ""
-
     start_time = float(time.time())
     elapsed = float(time.time())-start_time
     done = print_status(seconds, elapsed)
@@ -67,4 +64,16 @@ if __name__ == '__main__':
         time.sleep(1)
         elapsed = float(time.time())-start_time
         done = print_status(seconds, elapsed)
-    beep(reason)
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    if len(args) == 1:
+        wait(args[0])
+        beep()
+    elif len(args) % 2 == 0:
+        for s, reason in zip(args[::2], args[1::2]):
+            wait(s)
+            beep(reason)
+    else:
+        print(USAGE, file=sys.stderr)
+        sys.exit(1)
