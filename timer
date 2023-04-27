@@ -2,10 +2,10 @@
 import os,re,sys,time
 
 USAGE = """
-USAGE: timer TIME
-EXAMPLES: timer 5m30s
-          timer 1 minute
-          timer 5 hours 3 minute
+USAGE: timer TIME [REASON]
+EXAMPLES: timer 5m30s pomodoro
+          timer "1 minute"
+          timer "5 hours 3 minute"
 
 """.strip()
 
@@ -14,8 +14,8 @@ EXAMPLES: timer 5m30s
 #  Support human-readable formats other than integer minutes. ex 5m40s
 
 class ParseException(Exception): pass
-def beep():
-    os.system("beep >/dev/null 2>/dev/null || beepz")
+def beep(reason):
+    os.system(f"beepz \"{reason}\" || beep &>/dev/null")
 def parse_time(arg): # minute only for now
     SPACE = r'[ ,]*'
     REGEX = re.compile(
@@ -25,7 +25,6 @@ def parse_time(arg): # minute only for now
         r'(?:(?P<seconds>\d+)(?:s|sec|secs|second|seconds))?' + SPACE
     )
     m = REGEX.fullmatch(arg)
-    print("hi", m)
     if not m: raise ParseException("Unrecognized time format")
     hours = int(m.group('hours') or 0)
     minutes = int(m.group('minutes') or 0)
@@ -54,11 +53,12 @@ if __name__ == '__main__':
         print(USAGE, file=sys.stderr)
         sys.exit(1)
     try:
-        seconds = parse_time("".join(sys.argv[1:]))
+        seconds = parse_time(sys.argv[1])
     except ParseException:
         print(USAGE, file=sys.stderr)
         print("Unrecognized time format: {}".format(sys.argv[1]), file=sys.stderr)
         sys.exit(1)
+    reason = sys.argv[2] if len(sys.argv)>2 else ""
 
     start_time = float(time.time())
     elapsed = float(time.time())-start_time
@@ -67,4 +67,4 @@ if __name__ == '__main__':
         time.sleep(1)
         elapsed = float(time.time())-start_time
         done = print_status(seconds, elapsed)
-    beep()
+    beep(reason)

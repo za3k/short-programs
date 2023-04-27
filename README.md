@@ -446,6 +446,7 @@ Kitchen timer for the command line
 Example:
 
     timer 5m30s
+    timer "20 minutes" "next pomodoro"
 
 video-linter
 ---
