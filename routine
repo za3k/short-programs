@@ -1,24 +1,41 @@
-# plank - 3m
-# squat+curl: 6m
-# lift + press: 3m
-case "$1" of)
-A|a)
-    echo "Not done"
+func doit() {
+    say "$1" && countdown "$1" "$2" && beepz -q "$1"
+}
+
+case "$1" in
+A|a) # 23 minutes
+    say "Exercise Routine A" && sleep 2
+    for x in 1 2 3; do
+        doit "plank" 30s
+        doit "rest" 30s
+    done
+    for x in 1 2 3; do
+        doit "dumbbell straight-leg deadlift" 110s
+        doit "dumbbell row one arm" 90s
+    done
+    doit "rest" 1m
+    for x in 1 2 3; do
+        doit "dumbbell squat" 90s
+        doit "pushups" 90s
+    done
+    say "done"
     ;;
-B|b
-    /home/zachary/.projects/short-programs/timer 1s\
-        plank 30s rest 30s \
-        plank 30s rest 30s \
-        plank 30s rest 30s \
-        "dumbbell squat" 1m "bicep curl" 90s \
-        "dumbbell squat" 1m "bicep curl" 90s \
-        "dumbbell squat" 1m "bicep curl" 90s \
-        rest 1m \
-        "straight leg deadlift" 90s "dumbbell shoulder press" 90s \
-        "straight leg deadlift" 90s "dumbbell shoulder press" 90s \
-        "straight leg deadlift" 90s "dumbbell shoulder press" 90s \
-        done # Routine B
-    ;;
+B|b) # 20.5 minutes
+    say "Exercise Routine B" && sleep 2
+    for x in 1 2 3; do
+        doit "plank" 30s
+        doit "rest" 30s
+    done
+    for x in 1 2 3; do
+        doit "dumbbell squat" 1m
+        doit "bicep curl" 90s
+    done
+    doit "rest" 1m
+    for x in 1 2 3; do
+        doit "straight leg deadlift" 90s
+        doit "dumbbell shoulder press" 90s
+    done
+    say "done"
 *)
     echo "Not a valid routine"
     ;;

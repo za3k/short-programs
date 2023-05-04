@@ -36,6 +36,7 @@ Sounds beeps, even on devices with beep turned off. Pseudo-rando beeps and says 
 Usage:
 
     beepz "Pomodoro"
+    beepz -q "Pomodoro" # Don't use TTS, just beep
 
 budget_summary
 ---
@@ -70,6 +71,10 @@ Clones a Github repository. Usage: `clonegh [USER] REPOSITORY`
 confirm
 ---
 (Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
+
+countdown
+---
+See 'timer'
 
 create-github-repo
 ---
@@ -445,12 +450,13 @@ Tag images in a directory interactively, using 'feh'. One button resizes, anothe
 
 timer
 ---
-Kitchen timer for the command line
+Kitchen timer for the command line. 'countdown' just displays a time, 'timer' additionally beeps at the end
 
 Example:
 
     timer 5m30s
     timer "20 minutes" "next pomodoro"
+    timer 5m30s
 
 video-linter
 ---

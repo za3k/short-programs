@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Usage: beepz [REASON]
+Usage: beepz [-q] [REASON]
 Make a series of (pseudo-) random beeps based on REASON, then say REASON using TTS if TTS is available.
 """
 import math, random, struct, subprocess,sys
@@ -45,8 +45,9 @@ def say(text):
     subprocess.check_output(['speak', '-v', 'english-mb-en1', text])
 
 if __name__ == "__main__":
-    seed = ''.join(sys.argv[1:])
+    args = [x for x in sys.argv[1:] if x.startswith("-")]
+    seed = ''.join(x for x in sys.argv[1:] if not x.startswith("-"))
     h = hashlib.sha1(seed.encode('utf8')).digest()
     random.seed(h[0]+h[1]*256+h[1]*256**2)
     play_samples(randbeeps())
-    if seed: say(seed)
+    if seed and "-q" not in args: say(seed)
