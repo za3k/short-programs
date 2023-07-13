@@ -271,9 +271,17 @@ This allows for fast startup, by executing a tmux configuration file as a progra
 ---
 Play randomly-generated noise through the speakers
 
-notify2zak
+notify
 ---
 Send a message that gets to me.
+
+Currently shotguns:
+- sms
+- push notification
+- voice announcement
+- audible bell ding
+- email
+- irc
 
 Usage:
     
