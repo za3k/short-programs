@@ -1,9 +1,0 @@
-#!/bin/sh
-email() {
- SENDMAIL=sendmail
- if which sendmail 2>/dev/null >/dev/null; then :; else SENDMAIL=/usr/lib/sendmail; fi
-
- echo "Subject: $1" | $SENDMAIL za3k@za3k.com
-}
-
-email "$1"
