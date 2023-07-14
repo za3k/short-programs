@@ -104,6 +104,7 @@ irc() {
 }
 
 sms() {
+    return 0; # ATT Gateway blocks us.
     echo "Subject: $NAME $1" | $SENDMAIL $PHONE_EMAIL
 }
 
@@ -124,29 +125,7 @@ reasonable_time() {
     esac
 }
 
-if [ $# -lt 1 ]; then usage; exit 1;
-elif [ $# -gt 2 ]; then usage; exit 1;
-fi
-
-case "$1" in
-  --speak)  speak "$2" ;;
-  --popup)  popup "$2" ;;
-  --sms)    sms "$2" ;;
-  --email)  email "$2" ;;
-  --ntfy)   ntfy "$2" ;;
-  --irc)    irc "$2" ;;
-  --beep)   beeps "$2" ;;
-  --afk)
-            email "$2"
-            ntfy "$2"
-            sms "$2"
-            irc "$2"
-    ;&
-  --here)
-            popup "$2"
-            beeps "$2" || speak "$2"
-    ;;
-  --push)
+push() {
     if [ `hostname` != 'rosemary' ]; then
         echo "Wrong machine." >&2
         exit 1
@@ -158,8 +137,37 @@ case "$1" in
     done
     echo -n "tron... "
     rsync "$exe" tron:bin/notify2zak && echo "pushed" || echo "FAILED"
+}
+
+if [ $# -eq 1 ]; then
+  cmd="--afk"
+  msg="$2"
+elif [ $# -eq 2 ]; then
+  cmd="$1"
+  msg="$2"
+else
+  usage
+  exit 1
+fi
+
+case "$cmd" in
+  --speak)  speak "$msg" ;;
+  --popup)  popup "$msg" ;;
+  --sms)    sms "$msg" ;;
+  --email)  email "$msg" ;;
+  --ntfy)   ntfy "$msg" ;;
+  --irc)    irc "$msg" ;;
+  --beep)   beeps "$msg" ;;
+  --afk)
+            email "$msg"
+            ntfy "$msg"
+            sms "$msg"
+            irc "$msg"
+    ;&
+  --here)
+            popup "$msg"
+            beeps "$msg" || speak "$msg"
     ;;
-  *)
-    exec "$0" --afk "$1"
-    ;;
+  --push)   push ;;
+  *)        usage; exit 1 ;;
 esac
