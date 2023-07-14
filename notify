@@ -84,7 +84,7 @@ irc() {
         [ `hostname` == rosemary ] || return 0
         IRC_HOST="$(echo "$IRC_SERVER" | cut -f1 -d:)"
         IRC_PORT="$(echo "$IRC_SERVER" | cut -f2 -d:)"
-        IRC_PASSWORD=`grep "kisspunch/libera" .purple/accounts.xml | sed "s/.*>\(.*\)<.*/\1/"`
+        IRC_PASSWORD=`grep "kisspunch/libera" ~/.purple/accounts.xml | sed "s/.*>\(.*\)<.*/\1/"`
         { 
             echo "PASS $IRC_PASSWORD"
             echo "NICK kisspunch"
@@ -108,7 +108,7 @@ sms() {
 }
 
 usage() {
-    echo "Usage: notify --afk <MESSAGE>:  Send a notification to zak" >&2
+    echo "Usage: notify [--afk] <MESSAGE>:  Send a notification to zak" >&2
     echo "       notify --here <MESSAGE>: Send a notification to zak" >&2
     echo "       notify --push" >&2
 }
@@ -123,6 +123,10 @@ reasonable_time() {
             return 0
     esac
 }
+
+if [ $# -lt 1 ]; then usage; exit 1;
+elif [ $# -gt 2 ]; then usage; exit 1;
+fi
 
 case "$1" in
   --speak)  speak "$2" ;;
@@ -156,6 +160,6 @@ case "$1" in
     rsync "$exe" tron:bin/notify2zak && echo "pushed" || echo "FAILED"
     ;;
   *)
-    usage
+    exec "$0" --afk "$1"
     ;;
 esac
