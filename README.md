@@ -276,16 +276,17 @@ notify
 Send a message that gets to me.
 
 Currently shotguns:
-- sms
-- push notification
-- voice announcement
-- audible bell ding
-- email
 - irc
+- email
+- voice announcement
+- on-screen announcement on all my computers
+- audible bell ding
+- push notification
+- text message (sms)
 
 Usage:
     
-    cat tasks | xargs && notify2zak "long list of tasks done"
+    cat tasks | xargs && notify "long list of tasks done"
 
 onerng
 ---

@@ -20,6 +20,10 @@ TZ=EST5EDT
 # =============== code ===============
 SENDMAIL=sendmail
 if which sendmail 2>/dev/null >/dev/null; then :; else SENDMAIL=/usr/lib/sendmail; fi
+if [ -z "$XDG_RUNTIME_DIR" ]; then # Needed to make 'say' use pulseaudio instead of alsa
+    export XDG_RUNTIME_DIR="/run/user/`id -u`"
+fi
+
 
 email() {
     echo "Subject: $NAME $1" | $SENDMAIL $EMAIL
@@ -46,21 +50,31 @@ popup() {
 }
 
 speak() {
-  if [ -z "$XDG_RUNTIME_DIR" ]; then
-    export XDG_RUNTIME_DIR="/run/user/`id -u`"
-  fi
   case `hostname` in
-    germinate|juice|rosemary)
-        if which say 2>/dev/null >/dev/null; then
-            say "$1"
-        fi
-        ;;
-    *) ;;
+    juice)
+        say "$1"
+        ssh laptop say "$1" ;;
+    germinate) ssh juice notify --speak "$1" ;;
+    rosemary)
+        say "$1"
+        ssh juice say "$1" ;;
+    *)
+        reasonable_time && ssh juice notify --speak "$1" ;;
   esac
+}
+
+beeps() {
   case `hostname` in
-    germinate|rosemary) ssh juice say "$1" ;;
-    juice) ;;
-    *) reasonable_time && ssh juice say "$1" ;;
+    juice)
+        beepz "$1"
+        ssh laptop beepz "$1" ;;
+    rosemary)
+        beepz "$1"
+        ssh juice beepz "$1" ;;
+    germinate) 
+        ssh juice notify --beep "$1" ;;
+    *)
+        reasonable_time && ssh juice notify --beep "$1"
   esac
 }
 
@@ -117,15 +131,16 @@ case "$1" in
   --email)  email "$2" ;;
   --ntfy)   ntfy "$2" ;;
   --irc)    irc "$2" ;;
-  --here)
-            popup "$2"
-            speak "$2"
-    ;&
+  --beep)   beeps "$2" ;;
   --afk)
             email "$2"
             ntfy "$2"
             sms "$2"
             irc "$2"
+    ;&
+  --here)
+            popup "$2"
+            beeps "$2" || speak "$2"
     ;;
   --push)
     if [ `hostname` != 'rosemary' ]; then
