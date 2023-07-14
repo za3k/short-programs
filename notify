@@ -139,11 +139,13 @@ push() {
     rsync "$exe" tron:bin/notify2zak && echo "pushed" || echo "FAILED"
 }
 
-if [ $# -eq 1 ]; then
-  cmd="--afk"
-  msg="$2"
-elif [ $# -eq 2 ]; then
+if [ $# -eq 2 ]; then
   cmd="$1"
+  msg="$2"
+elif [[ $# -eq 1 && $1 == "--push" ]]; then
+  cmd="$1"
+elif [ $# -eq 1 ]; then
+  cmd="--afk"
   msg="$2"
 else
   usage
