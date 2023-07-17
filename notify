@@ -10,7 +10,7 @@ NTFY_CHANNEL=za3k_general
 
 # Google voice does not support this
 # Good2Go does!
-PHONE_EMAIL=5106978728@txt.att.net
+PHONE_EMAIL=
 
 # Always sent using my ZNC bouncer, which requires my laptop that stores the password
 IRC_NICK=za3k
