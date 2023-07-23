@@ -1,14 +1,9 @@
 #!/bin/bash
-START=$(date +%s)
-
-if [ $# -ne 1 ]
-then
-    echo 'Usage: timer <minutes>'
+if [ $# -eq 1 ]; then
+    countdown "$@" && beepz "$@"
+elif [ $# -eq 2 ]; then
+    countdown "$@" && beepz "$@"
+else
+    echo "Usage: timer TIME [REASON]" >&2
     exit 1
 fi
-
-SECONDS=$((60 * $1))
-END=$(($START + $SECONDS))
-unset SECONDS
-
-watch -n1 -t "./time_diff $END \`date +%s\`"

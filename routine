@@ -1,0 +1,45 @@
+#!/bin/bash
+
+doit() {
+    say "$1" && countdown "$2" "$1" && beepz -q "$1"
+}
+
+case "$1" in
+A|a) # <15 minutes
+    say "Exercise Routine A" && sleep 2
+    for x in 1 2 3; do
+        doit "plank" 30s
+        doit "rest" 30s
+    done
+    for x in 1 2 3; do
+        doit "dumbbell straight-leg deadlift" 50s
+        doit "dumbbell row one arm" 35s
+    done
+    doit "rest" 1m
+    for x in 1 2 3; do
+        doit "dumbbell squat" 60s
+        doit "pushups" 60s
+    done
+    say "done"
+    ;;
+B|b) # 20.5 minutes (redo for x12)
+    say "Exercise Routine B" && sleep 2
+    for x in 1 2 3; do
+        doit "plank" 30s
+        doit "rest" 30s
+    done
+    for x in 1 2 3; do
+        doit "dumbbell squat" 60s
+        doit "bicep curl" 90s
+    done
+    doit "rest" 1m
+    for x in 1 2 3; do
+        doit "dumbbell straight leg deadlift" 70s
+        doit "dumbbell shoulder press" 60s
+    done
+    say "done"
+    ;;
+*)
+    echo "Not a valid routine"
+    ;;
+esac

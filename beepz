@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""
+Usage: beepz [-q] [REASON]
+Make a series of (pseudo-) random beeps based on REASON, then say REASON using TTS if TTS is available.
+"""
+import math, random, struct, subprocess,sys
+import os.path
+import hashlib
+
+rate = 48000 # Hz
+vol = 0.2 # As a percentage
+
+def randExp(low, high):
+    return int(math.exp(random.random()*math.log(1.*high/low))*low)
+
+def randbeep():
+    ms = randExp(200,600)
+    freq = randExp(220, 900)
+    samples = ms * rate // 1000
+    r = [math.sin(t*freq/rate*math.pi) for t in range(samples)]
+    for x in range(100):
+        r[x] *= (x/100)
+        r[-x] *= (x/100)
+    return r
+def silence(ms):
+    samples = ms * rate // 1000
+    return [0]*samples
+
+def randbeeps():
+    out = randbeep()
+    num_beeps = random.randrange(2,5)
+    for x in range(num_beeps-1):
+        out += silence(500) + randbeep()
+    return out
+
+def play_samples(s):
+    p = subprocess.Popen(['aplay', '-r', '48000', '-f', 's16'], stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    bytes_ = struct.pack(f"<{str(len(s))}h", *[int(32000 * x * vol) for x in s])
+    p.stdin.write(bytes_)
+    p.stdin.close()
+    p.wait()
+
+def say(text):
+    if not os.path.exists("/bin/speak"): return
+    subprocess.check_output(['speak', '-v', 'english-mb-en1', text])
+
+if __name__ == "__main__":
+    args = [x for x in sys.argv[1:] if x.startswith("-")]
+    seed = ''.join(x for x in sys.argv[1:] if not x.startswith("-"))
+    h = hashlib.sha1(seed.encode('utf8')).digest()
+    random.seed(h[0]+h[1]*256+h[1]*256**2)
+    play_samples(randbeeps())
+    if seed and "-q" not in args: say(seed)

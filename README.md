@@ -29,6 +29,15 @@ battery
 ---
 Displays the current battery percentage as a short string for displays
 
+beepz
+---
+Sounds beeps, even on devices with beep turned off. Pseudo-rando beeps and says the reason.
+
+Usage:
+
+    beepz "Pomodoro"
+    beepz -q "Pomodoro" # Don't use TTS, just beep
+
 budget_summary
 ---
 Helper for za3k only. Summarizes budget categories typed in from my logbook
@@ -62,6 +71,10 @@ Clones a Github repository. Usage: `clonegh [USER] REPOSITORY`
 confirm
 ---
 (Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
+
+countdown
+---
+See 'timer'
 
 create-github-repo
 ---
@@ -150,6 +163,11 @@ fragile-treediff
 Usage: `fragile-treediff FOLDER1 FOLDER2`
 Returns a success or failure error code, depending on whether two folders are exactly identical.
 
+grep-percent
+---
+Usage: `grep-percent TERM FILE`
+Prints the percentage of lines that match the query (0 to 100)
+
 google
 ---
 Searches for something on google, opening the results page in the default browser.
@@ -171,7 +189,11 @@ Usage:
 
 habit-tracker
 ---
+![habit-tracker screenshot](habit-tracker.png)
+
 Useful only to me. Tracks whether I do things like brush my teeth once a day, shave regularly, etc.
+
+On the left is the habit; on the right is how long since I've done that. You press a single key to say "I did this task". Colors? Red is overdue, blue is "do today", green is "done recently", and grey is "no specific goals".
 
 Usage: `habit-tracker`
 
@@ -260,6 +282,23 @@ This allows for fast startup, by executing a tmux configuration file as a progra
 ---
 Play randomly-generated noise through the speakers
 
+notify
+---
+Send a message that gets to me.
+
+Currently shotguns:
+- irc
+- email
+- voice announcement
+- on-screen announcement on all my computers
+- audible bell ding
+- push notification
+- text message (sms)
+
+Usage:
+    
+    cat tasks | xargs && notify "long list of tasks done"
+
 onerng
 ---
 Outputs the (raw) random bytes from an OneRNG hardware device
@@ -327,9 +366,25 @@ pushgh
 ---
 Push to an empty Github repo. Usage: `pushgh [USER] REPOSITORY`
 
+quiz
+---
+Record daily measurements, etc to a CSV file. Asks questions from the header row of the CSV.
+
+Usage:
+
+    quiz QUESTIONS.csv
+
 random
 ---
 Print a random line out of a file
+
+record-shell
+---
+Records all interactive shells using [script](https://en.wikipedia.org/wiki/Script_(Unix)). To use, add the magic line given to the top of your .bashrc (record-shell works on all shells, but the invocation line may need to be changed slightly for each shell)
+
+Note that this can record SSH sessions, sudo session etc fine. However by default it does not include input (typed passwords etc).
+
+Records to /var/log/console-recording/$USER/$DATE.log
 
 retry
 ---
@@ -342,10 +397,14 @@ Rolls D&D dice.
 Usage:
 
     roll "d6 + 4"
+    roll d6 + 4
+    roll 2d10
 
 Output:
 
     1d6+4 = 8
+    1d6+4 = 6
+    2d10+0 = 19
 
 rtmux
 ---
@@ -411,7 +470,17 @@ Tag images in a directory interactively, using 'feh'. One button resizes, anothe
 
 timer
 ---
-Kitchen timer for the command line
+Kitchen timer for the command line. 'countdown' just displays a time, 'timer' additionally beeps at the end
+
+Example:
+
+    timer 5m30s
+    timer "20 minutes" "next pomodoro"
+    timer 5m30s
+
+video-linter
+---
+Check whether videos are correctly renamed and organized. Only useful to me.
 
 watch-to-file
 ---

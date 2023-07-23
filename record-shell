@@ -1,0 +1,13 @@
+# Add the following line to .bashrc, etc
+# if [[ -f /bin/record-shell && -z "$RECORDING" && $- == *i* ]]; then if shopt -q login_shell; then :; else exec /bin/record-shell; fi; fi
+DATE_FORMAT="+%Y-%m-%dT%H:%M:%S"
+DATE=`/usr/bin/date "$DATE_FORMAT"`
+FILE="/var/log/console-recording/$USER/$DATE.log"
+FILE_TIMING="/var/log/console-recording/$USER/$DATE.timing-log"
+# echo "To replay: scriptreplay -O $FILE -t $FILE_TIMING"
+[ -z "$SHELL" ] && SHELL=/bin/sh
+if [ -f /usr/bin/script]; then
+  exec /usr/bin/env RECORDING=yes /usr/bin/script -q -m advanced --log-timing $FILE_TIMING --log-out "$FILE" -e -c $SHELL "$@"
+else
+  exec /usr/bin/env RECORDING=no $SHELL "$@"
+fi
