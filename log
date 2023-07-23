@@ -1,0 +1,24 @@
+#!/bin/sh
+usage() {
+  echo "Usage: log DATASET" >>/dev/stderr
+}
+if [ $# -gt 1 ]; then
+  echo "Too many arguments." >>/dev/stderr
+  usage
+  exit 1
+fi
+if [ -z "${1}" ]; then
+  SERVICE=main
+else
+  SERVICE=$1
+fi
+if [ -z "`echo $SERVICE | /usr/bin/tr -d '[:alnum:]_-'`" ]; then
+  while read x; do
+    DATE=`TZ=UTC /bin/date +"%Y-%m-%dT%H:%M:%SZ"`
+    echo "$DATE [${SERVICE}] ${x}" >>/var/log/forever/${SERVICE}.log
+  done
+else
+  echo "Invalid dataset" >>/dev/stderr
+  usage
+  exit 1
+fi

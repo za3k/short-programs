@@ -199,6 +199,17 @@ lines
 ---
 Get a slice of lines from a file: `lines <start> <end> <file>` or `cat <file> | lines <start> <end>`.
 
+log
+---
+Usage:
+
+    log DATASET
+
+Example:
+
+    echo "Backed up the computer." | log backups
+
+
 lwjgl-fix
 ---
 On Arch Linux, fix lwjgl.jar in minecraft
