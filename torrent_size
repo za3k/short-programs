@@ -1,0 +1,2 @@
+#!/bin/sh
+aria2c -S "$@" | grep "^ \+|" | sed -Ee "s/^.*\((.*)\).*/\1/" | tr -d "," | ~/short-programs/sum | numfmt --to=iec-i
