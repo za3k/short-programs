@@ -7,10 +7,11 @@ scan() {
   DPI="${1:-300dpi}"
   WIDTH="${2:-214}"
   HEIGHT="${3:-295}"
+  DEVICE=pixma
   if [ -z "${1}" ]; then
-    scanimage --device pixma:04A91912_429479 --format=png --output-file "$OUT" -l2 -t 2 -x "$WIDTH" -y "$HEIGHT" --resolution "$DPI" --button-controlled=yes
+    scanimage --device $DEVICE --format=png --output-file "$OUT" -l2 -t 2 -x "$WIDTH" -y "$HEIGHT" --resolution "$DPI" --button-controlled=yes
   else
-    scanimage --device pixma:04A91912_429479 --format=png --output-file "$OUT" -x "$WIDTH" -y "$HEIGHT" --resolution "$DPI" --button-controlled=yes
+    scanimage --device $DEVICE --format=png --output-file "$OUT" -x "$WIDTH" -y "$HEIGHT" --resolution "$DPI" --button-controlled=yes
   fi
 }
 
@@ -50,4 +51,10 @@ if [ "$1" == "-h" ]; then
   echo "   ex  scan-lide 600dpi 195 155 # (leuchtterm size)"
   exit 0
 fi
+if which scanimage >/dev/null 2>/dev/null; then :; else
+    echo "Missing program: scanimage" >&2
+    echo "Run: pacman -S sane" >&2
+    exit 1
+fi
+
 scan_loop "$@"
