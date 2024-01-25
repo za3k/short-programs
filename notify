@@ -34,8 +34,8 @@ ntfy() {
 }
 
 popup() {
-    LOCAL_COMMAND=( notify-send "$NAME" -t 10000000 "$1" )
-    REMOTE_COMMAND="notify-send '$NAME' -t 10000000 '$1'"
+    LOCAL_COMMAND=( notify-send "$NAME" -t 300000 "$1" )
+    REMOTE_COMMAND="notify-send '$NAME' -t 300000 '$1'"
     case `hostname` in
         juice)
             "${LOCAL_COMMAND[@]}"
@@ -52,12 +52,12 @@ popup() {
 speak() {
   case `hostname` in
     juice)
-        say "$1"
-        ssh laptop say "$1" ;;
+        ssh laptop /home/zachary/short-programs/say "$1" || true
+        say "$1" ;;
     germinate) ssh juice notify --speak "$1" ;;
     rosemary)
-        say "$1"
-        ssh juice say "$1" ;;
+        ssh juice say "$1"
+        say "$1" ;;
     *)
         reasonable_time && ssh juice notify --speak "$1" ;;
   esac
@@ -66,11 +66,11 @@ speak() {
 beeps() {
   case `hostname` in
     juice)
-        beepz "$1"
-        ssh laptop beepz "$1" ;;
+        ssh laptop /home/zachary/short-programs/beepz "$1" || true 
+        beepz "$1" ;;
     rosemary)
-        beepz "$1"
-        ssh juice beepz "$1" ;;
+        ssh juice beepz "$1"
+        beepz "$1" ;;
     germinate) 
         ssh juice notify --beep "$1" ;;
     *)
@@ -161,14 +161,15 @@ case "$cmd" in
   --irc)    irc "$msg" ;;
   --beep)   beeps "$msg" ;;
   --afk)
-            email "$msg"
-            ntfy "$msg"
-            sms "$msg"
-            irc "$msg"
+            email "$msg" &
+            ntfy "$msg" &
+            sms "$msg" &
+            irc "$msg" &
     ;&
   --here)
-            popup "$msg"
+            popup "$msg" &
             beeps "$msg" || speak "$msg"
+            wait
     ;;
   --push)   push ;;
   *)        usage; exit 1 ;;
