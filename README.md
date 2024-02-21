@@ -60,18 +60,6 @@ Example:
 
     sudo check-if-zeros /dev/sdb
 
-clonebb
----
-Clones a Bitbucket repository. Usage: `clonebb [USER] REPOSITORY`
-
-clonegh
----
-Clones a Github repository. Usage: `clonegh [USER] REPOSITORY`
-
-confirm
----
-(Dead) `cp confirm.txt /usr/share/confirm/confirm` for install. Randomly tells you to avoid a default course of action to switch up habits. Poorly designed, doesn't work.
-
 copy-photo
 ---
 Specific to me. Copies my latest google photo to the clipboard.
