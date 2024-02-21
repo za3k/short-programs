@@ -1,0 +1,6 @@
+#!/bin/sh
+# Copy the latest photo from google photos, and put it in the clipboard
+
+ssh juice gphotos-sync ~/google-photos --log-level ERROR
+LATEST_PHOTO=`ssh juice 'find ~/google-photos/photos/2024/02 | sort | tail -n 1'`
+ssh juice cat $LATEST_PHOTO | convert - -resize 800x600\> jpeg:- | xclip -t image/jpeg -selection clipboard -i
