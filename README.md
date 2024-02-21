@@ -470,6 +470,10 @@ Example:
     timer "20 minutes" "next pomodoro"
     timer 5m30s
 
+torrent\_size
+---
+Display the size of a torrent file
+
 video-linter
 ---
 Check whether videos are correctly renamed and organized. Only useful to me.
