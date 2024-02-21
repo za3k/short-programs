@@ -8,7 +8,11 @@ def load_review():
         current_date = '-'.join(fp.split("/")[-1].split("-")[:3])
         current_date = datetime.datetime.strptime(current_date, DATE_FORMAT)
     else:
-        current_date=datetime.date.today()
+        current_date=datetime.date.today() # yeah except go backwards to friday...
+        day_offset = 4-current_date.weekday()
+        while day_offset > 0: day_offset-= 7
+        assert -6 <= day_offset <= 0
+        current_date += datetime.timedelta(days=day_offset)
         fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
     if not os.path.exists(fp):
         fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date.strftime(DATE_FORMAT))
