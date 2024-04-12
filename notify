@@ -25,11 +25,9 @@ if [ -z "$XDG_RUNTIME_DIR" ]; then # Needed to make 'say' use pulseaudio instead
 fi
 
 ssh_lessstupid() {
-    HOST="$1"
-    shift
     args=()
     for v in "$@"; do args+=("$(printf %q "$v")"); done
-    ssh $HOST "${args[@]}"
+    ssh "${args[@]}"
 }
 
 

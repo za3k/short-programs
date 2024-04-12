@@ -1,0 +1,4 @@
+#!/bin/bash
+args=()
+for v in "$@"; do args+=("$(printf %q "$v")"); done
+exec ssh "${args[@]}"

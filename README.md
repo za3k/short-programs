@@ -448,6 +448,10 @@ Example:
 
     sleep_summary 8h40m 5h20m 7h
 
+ssh-quote
+---
+Like 'ssh', except it handles quoted arguments how you might expect
+
 static-ip
 ---
 Set up a static ip on linux
