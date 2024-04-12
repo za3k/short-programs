@@ -24,6 +24,14 @@ if [ -z "$XDG_RUNTIME_DIR" ]; then # Needed to make 'say' use pulseaudio instead
     export XDG_RUNTIME_DIR="/run/user/`id -u`"
 fi
 
+ssh_lessstupid() {
+    HOST="$1"
+    shift
+    args=()
+    for v in "$@"; do args+=("$(printf %q "$v")"); done
+    ssh $HOST "${args[@]}"
+}
+
 
 email() {
     echo "Subject: $NAME $1" | $SENDMAIL $EMAIL
@@ -34,47 +42,46 @@ ntfy() {
 }
 
 popup() {
-    LOCAL_COMMAND=( notify-send "$NAME" -t 300000 "$1" )
-    REMOTE_COMMAND="notify-send '$NAME' -t 300000 '$1'"
+    COMMAND=( notify-send "$NAME" -t 300000 "$1" )
     case `hostname` in
         juice)
-            "${LOCAL_COMMAND[@]}"
-            ssh laptop "$REMOTE_COMMAND"
+            "${COMMAND[@]}"
+            ssh_lessstupid laptop "${COMMAND[@]}"
         ;;
         rosemary)
-            "${LOCAL_COMMAND[@]}"
-            ssh juice "$REMOTE_COMMAND"
+            "${COMMAND[@]}"
+            ssh_lessstupid juice "${COMMAND[@]}"
         ;;
-        *) ssh juice notify --popup "$1" ;;
+        *) ssh_lessstupid juice notify --popup "$1" ;;
     esac
 }
 
 speak() {
   case `hostname` in
     juice)
-        ssh laptop /home/zachary/short-programs/say "$1" || true
+        ssh_lessstupid laptop /home/zachary/short-programs/say "$1" || true
         say "$1" ;;
-    germinate) ssh juice notify --speak "$1" ;;
+    germinate) ssh_lessstupid juice notify --speak "$1" ;;
     rosemary)
-        ssh juice say "$1"
+        ssh_lessstupid juice say "$1"
         say "$1" ;;
     *)
-        reasonable_time && ssh juice notify --speak "$1" ;;
+        reasonable_time && ssh_lessstupid juice notify --speak "$1" ;;
   esac
 }
 
 beeps() {
   case `hostname` in
     juice)
-        ssh laptop /home/zachary/short-programs/beepz "$1" || true 
+        ssh_lessstupid laptop /home/zachary/short-programs/beepz "$1" || true 
         beepz "$1" ;;
     rosemary)
-        ssh juice beepz "$1"
+        ssh_lessstupid juice beepz "$1"
         beepz "$1" ;;
     germinate) 
-        ssh juice notify --beep "$1" ;;
+        ssh_lessstupid juice notify --beep "$1" ;;
     *)
-        reasonable_time && ssh juice notify --beep "$1"
+        reasonable_time && ssh_lessstupid juice notify --beep "$1"
   esac
 }
 
@@ -95,10 +102,10 @@ irc() {
         ;;
       juice)
         # Sorry future self
-        ssh laptop /home/zachary/.projects/short-programs/notify --irc "$1"
+        ssh_lessstupid laptop /home/zachary/.projects/short-programs/notify --irc "$1"
         ;;
       *)
-        ssh juice notify --irc "$1"
+        ssh_lessstupid juice notify --irc "$1"
         ;;
     esac
 }
