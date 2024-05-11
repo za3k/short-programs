@@ -5,12 +5,13 @@ from sys import stdout
 import readline
 
 POMS_SAVE = os.path.expanduser("~/.poms")
-CHIME = os.path.expanduser("~/music/chime.opus")
+CHIME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chime.opus")
 POMODORO_TIME = 20*60
 inst = """
 Press N to make a new pomodoro
-Press R to redo the latest pomodoro
 Press P to do a pomodoro
+Press R to redo the latest pomodoro
+Ctrl-C exits.
 """
 
 COLORS = {
@@ -156,7 +157,7 @@ if __name__ == '__main__':
     poms = []
     latest_pomodoro = None
     if os.path.exists(POMS_SAVE):
-        with open(".poms", "r") as f:
+        with open(POMS_SAVE, "r") as f:
             poms = [x.strip() for x in list(f) if x.strip() != ""]
     while True:
         kp = waiting(poms).upper()
