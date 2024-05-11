@@ -11,6 +11,7 @@ inst = """
 Press N to make a new pomodoro
 Press P to do a pomodoro
 Press R to redo the latest pomodoro
+Press C to delete all pomodoros
 Ctrl-C exits.
 """
 
