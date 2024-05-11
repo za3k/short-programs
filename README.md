@@ -326,9 +326,9 @@ ping-test
 ---
 Return true if the internet is up (a single ping to 8.8.8.8 returns).
 
-pomodoros
+pompompom
 ---
-Reports number of pomodoros completed to beeminder. Usage: `pomdoros NUM-POMODOROS DESC`
+Do pomodoros interactively.
 
 print.index
 ---

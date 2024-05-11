@@ -1,0 +1,164 @@
+from playsound import playsound
+import os, select, sys, time, threading
+from sys import stdout
+
+POMS_SAVE = os.path.expanduser("~/.poms")
+CHIME = os.path.expanduser("~/music/chime.opus")
+inst = """
+Press N to make a new pomodoro
+Press P to do a pomodoro
+"""
+
+COLORS = {
+    "grey": "\x1b[90m",
+    "white": "\x1b[37m",
+    "yellow": "\x1b[33m",
+    "red": "\x1b[31m",
+    "green": "\x1b[32m",
+    "default": "\x1b[34m",
+    "blue": "\x1b[34m",
+    #"key": "\x1b[97;102;4m",
+    "key": "\x1b[30;102m",
+}
+BCOLORS = {
+    "white": "\x1b[47m",
+    "yellow": "\x1b[43m",
+    "red": "\x1b[41m",
+    "green": "\x1b[42m",
+    "blue": "\x1b[44m",
+    "default": "\x1b[40m",
+}
+CURSOR_HIDE = "\x1b[?25l"
+CURSOR_SHOW = "\x1b[?25h"
+CLEARCOLOR = "\x1b[0m"
+
+def clear_screen():
+    sys.stdout.write("\x1b[2J\x1b[H")
+def display_pom_card(task):
+    sw, sh = os.get_terminal_size()
+    width = len(task)
+    stx, sty = (sw-width)//2, sh//2
+    draw_border(stx-5, sty-2, stx+width+5, sty+4, BCOLORS["green"])
+    move(stx, sty)
+    stdout.write(BCOLORS["default"])
+    stdout.write(COLORS["green"])
+    stdout.write(task)
+    return stx+(len(task)-5)//2, sty+1
+def move (x, y):
+    stdout.write("\033[%d;%dH" % (y,x))
+def blit(x, y, back, front, char):
+    move(x, y)
+    stdout.write(back)
+    stdout.write(front)
+    stdout.write(char)
+def draw_border(x1, y1, x2, y2, back, label=None, label_front=COLORS["white"]):
+    for x in range(x1, x2):
+        blit(x, y1, back, COLORS["default"], " ")
+        blit(x, y2-1, back, COLORS["default"], " ")
+    for y in range(y1, y2):
+        blit(x1, y, back, COLORS["default"], " ")
+        blit(x2-1, y, back, COLORS["default"], " ")
+    if label:
+        label = " " + label + " "
+        sx = x1+(x2-x1-len(label))//2
+        for i, c in enumerate(label):
+            blit(sx+i, y1, BCOLORS["default"], label_front, c)
+def display_poms(poms):
+    height = len(poms)
+    width = max(max((len(x) for x in poms), default=0), 11)
+    sw, sh = os.get_terminal_size()
+    stx, sty = (sw-width)//2, (sh-height-2)//2
+    draw_border(stx,sty, stx+width+4,sty+height+4, BCOLORS["blue"], "pomodoros", COLORS["blue"])
+    for y, pom in enumerate(poms):
+        startx = stx + 2# (width-len(pom))//2 + 2
+        starty = sty + 2
+        for x, c in enumerate(pom):
+            blit(startx+x, starty+y, BCOLORS["default"], COLORS["blue"], c)
+def display_help():
+    sw, sh = os.get_terminal_size()
+    move(0, sh-4)
+    stdout.write(BCOLORS["default"])
+    stdout.write(COLORS["green"])
+    stdout.write(inst + "\n")
+def update_countdown(x, y, s):
+    m,s = s//60, (s%60)//1
+    t = "%02d:%02d" % (m,s)
+    stdout.write(BCOLORS["default"])
+    stdout.write(COLORS["grey"])
+    move(x, y)
+    stdout.write(t)
+    stdout.flush()
+def get_key():
+    import tty, sys, termios
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    while True:
+        try:
+            tty.setraw(sys.stdin.fileno())
+            INPUT_TIMEOUT = 1.0
+            rlist, _, _ = select.select([sys.stdin], [], [], INPUT_TIMEOUT)
+            if rlist:
+                return sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+def now():
+    return float(time.time())
+def alarm_sound(times, stop_early):
+    for i in range(times):
+        if stop_early.acquire(blocking=False):
+            stop_early.release()
+            playsound(CHIME, block=True)
+
+# -------------------------------------------------
+def alarm():
+    stop_early = threading.Semaphore()
+    t = threading.Thread(target=alarm_sound, args=[3, stop_early])
+    t.start()
+    get_key()
+    stop_early.acquire()
+def waiting(poms):
+    stdout.write(CURSOR_HIDE)
+    clear_screen()
+    display_poms(poms)
+    display_help()
+    return get_key()
+def do_pomodoro(poms):
+    clear_screen()
+    x, y = display_pom_card(poms[0])
+    start = now()
+    end = start + 60*0.1
+    try:
+        while now() < end:
+            update_countdown(x, y, end - now())
+            time.sleep(0.1)
+        alarm()
+    except KeyboardInterrupt:
+        pass
+    poms.pop(0)
+def do_new(poms):
+    clear_screen()
+    stdout.write(CURSOR_SHOW)
+    stdout.write(CLEARCOLOR)
+    new = input("New pomodoro: ")
+    stdout.write(CURSOR_HIDE)
+    if new.strip() != "":
+        poms.append(new)
+
+if __name__ == '__main__':
+    poms = []
+    if os.path.exists(POMS_SAVE):
+        with open(".poms", "r") as f:
+            poms = [x.strip() for x in list(f) if x.strip() != ""]
+    while True:
+        kp = waiting(poms).upper()
+        if kp == "\x03": # Ctrl-C
+            stdout.write(CURSOR_SHOW + CLEARCOLOR)
+            with open(POMS_SAVE, "w") as f:
+                for pom in poms:
+                    f.write(pom + "\n")
+            exit()
+        elif kp == "P" and len(poms) > 0:
+            do_pomodoro(poms)
+        elif kp == "N":
+            do_new(poms)
+
