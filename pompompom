@@ -2,11 +2,14 @@
 from playsound import playsound
 import os, select, sys, time, threading
 from sys import stdout
+import readline
 
 POMS_SAVE = os.path.expanduser("~/.poms")
 CHIME = os.path.expanduser("~/music/chime.opus")
+POMODORO_TIME = 20*60
 inst = """
 Press N to make a new pomodoro
+Press R to redo the latest pomodoro
 Press P to do a pomodoro
 """
 
@@ -104,7 +107,7 @@ def get_key():
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 def now():
     return float(time.time())
-def alarm_sound(times, stop_early):
+def alarm_sound(stop_early, times=20):
     for i in range(times):
         if stop_early.acquire(blocking=False):
             stop_early.release()
@@ -113,10 +116,11 @@ def alarm_sound(times, stop_early):
 # -------------------------------------------------
 def alarm():
     stop_early = threading.Semaphore()
-    t = threading.Thread(target=alarm_sound, args=[3, stop_early])
+    t = threading.Thread(target=alarm_sound, args=[stop_early])
     t.start()
-    get_key()
+    kp = get_key()
     stop_early.acquire()
+    return kp
 def waiting(poms):
     stdout.write(CURSOR_HIDE)
     clear_screen()
@@ -124,18 +128,21 @@ def waiting(poms):
     display_help()
     return get_key()
 def do_pomodoro(poms):
-    clear_screen()
-    x, y = display_pom_card(poms[0])
+    old_size = None
     start = now()
-    end = start + 60*0.1
+    end = start + POMODORO_TIME
     try:
         while now() < end:
+            if os.get_terminal_size() != old_size:
+                old_size = os.get_terminal_size()
+                clear_screen()
+                x, y = display_pom_card(poms[0])
             update_countdown(x, y, end - now())
             time.sleep(0.1)
-        alarm()
+        kp = alarm()
     except KeyboardInterrupt:
-        pass
-    poms.pop(0)
+        kp = None
+    return kp, poms.pop(0)
 def do_new(poms):
     clear_screen()
     stdout.write(CURSOR_SHOW)
@@ -147,19 +154,23 @@ def do_new(poms):
 
 if __name__ == '__main__':
     poms = []
+    latest_pomodoro = None
     if os.path.exists(POMS_SAVE):
         with open(".poms", "r") as f:
             poms = [x.strip() for x in list(f) if x.strip() != ""]
     while True:
         kp = waiting(poms).upper()
+        if kp == "P" and len(poms) > 0:
+            kp, latest_pomodoro = do_pomodoro(poms)
+        while kp == "R" and latest_pomodoro is not None:
+            poms = [latest_pomodoro] + [poms]
+            kp, latest_pomodoro = do_pomodoro(poms)
         if kp == "\x03": # Ctrl-C
             stdout.write(CURSOR_SHOW + CLEARCOLOR)
             with open(POMS_SAVE, "w") as f:
                 for pom in poms:
                     f.write(pom + "\n")
             exit()
-        elif kp == "P" and len(poms) > 0:
-            do_pomodoro(poms)
-        elif kp == "N":
+        if kp == "N":
             do_new(poms)
 
