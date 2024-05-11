@@ -1,3 +1,4 @@
 #!/bin/sh
 # Copy the latest photo from my phone, and put it in the clipboard
-ssh germinate 'find "/data/phone-photos/Google Pixel 3/Camera/" -print0 | sort -z | tail -zn1 | xargs -0 cat' | convert - -resize 800x600\> jpeg:- | xclip -t image/jpeg -selection clipboard -i
+rsync -av germinate:"/data/phone-photos/Google Pixel 3/Camera/" /var/phone-photos
+find /var/phone-photos -name '*.jpg' -print0 | sort -z | tail -zn1 | xargs -0 cat | convert - -resize 800x600\> jpeg:- | xclip -t image/jpeg -selection clipboard -i
