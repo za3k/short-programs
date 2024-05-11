@@ -330,7 +330,7 @@ pompompom
 ---
 Do pomodoros interactively.
 
-Requires 'readline' and 'playsound'
+Requires 'playsound' from pip
 
 ![pompompom screenshot](pompompom.png)
 ![pompompom screenshot](pompompom2.png)
