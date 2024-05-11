@@ -49,6 +49,16 @@ def display_pom_card(task):
     stdout.write(COLORS["green"])
     stdout.write(task)
     return stx+(len(task)-5)//2, sty+1
+def display_prompt(prompt):
+    sw, sh = os.get_terminal_size()
+    width = len(prompt)
+    stx, sty = (sw-width)//2, sh//2
+    draw_border(stx-5, sty-2, stx+width+5, sty+3, BCOLORS["red"])
+    move(stx, sty)
+    stdout.write(BCOLORS["default"])
+    stdout.write(COLORS["red"])
+    stdout.write(prompt)
+    stdout.flush()
 def move (x, y):
     stdout.write("\033[%d;%dH" % (y,x))
 def blit(x, y, back, front, char):
@@ -144,6 +154,17 @@ def do_pomodoro(poms):
     except KeyboardInterrupt:
         kp = None
     return kp, poms.pop(0)
+def confirm(prompt):
+    stdout.write(CURSOR_HIDE)
+    clear_screen()
+    display_prompt(prompt + " (Y/N)")
+    while True:
+        kp = get_key()
+        if kp == "Y": return True
+        if kp == "N": return False
+        if kp == "y": return True
+        if kp == "n": return False
+        if kp == "\x03": return False # Ctrl-C
 def do_new(poms):
     clear_screen()
     stdout.write(CURSOR_SHOW)
@@ -161,6 +182,9 @@ if __name__ == '__main__':
             poms = [x.strip() for x in list(f) if x.strip() != ""]
     while True:
         kp = waiting(poms).upper()
+        if kp == "C":
+            if confirm("Really delete all pomodoros?"):
+                poms = []
         if kp == "P" and len(poms) > 0:
             kp, latest_pomodoro = do_pomodoro(poms)
         while kp == "R" and latest_pomodoro is not None:
