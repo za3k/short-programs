@@ -330,6 +330,11 @@ pompompom
 ---
 Do pomodoros interactively.
 
+Requires 'readline' and 'playsound'
+
+![pompompom screenshot](pompompom.png)
+![pompompom screenshot](pompompom2.png)
+
 print.index
 ---
 Prints a file remotely, or prints from stdin if no file is given. Will not work in isolation, needs a remote program
