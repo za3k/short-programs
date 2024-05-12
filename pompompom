@@ -174,13 +174,19 @@ def do_new(poms):
     stdout.write(CURSOR_HIDE)
     if new.strip() != "":
         poms.append(new)
+    save(poms)
+def save(poms):
+    with open(POMS_SAVE, "w") as f:
+        for pom in poms:
+            f.write(pom + "\n")
+def load():
+    if not os.path.exists(POMS_SAVE): return []
+    with open(POMS_SAVE, "r") as f:
+        return [x.strip() for x in list(f) if x.strip() != ""]
 
 if __name__ == '__main__':
-    poms = []
+    poms = load()
     latest_pomodoro = None
-    if os.path.exists(POMS_SAVE):
-        with open(POMS_SAVE, "r") as f:
-            poms = [x.strip() for x in list(f) if x.strip() != ""]
     while True:
         kp = waiting(poms).upper()
         if kp == "C":
@@ -193,10 +199,7 @@ if __name__ == '__main__':
             kp, latest_pomodoro = do_pomodoro(poms)
         if kp == "\x03": # Ctrl-C
             stdout.write(CURSOR_SHOW + CLEARCOLOR)
-            with open(POMS_SAVE, "w") as f:
-                for pom in poms:
-                    f.write(pom + "\n")
+            save(poms)
             exit()
         if kp == "N":
             do_new(poms)
-
