@@ -10,9 +10,12 @@ POMODORO_TIME = 20*60
 inst = """
 Press N to make a new pomodoro (Shift-N to add at the top)
 Press P to do a pomodoro
+
 Press R to redo the latest pomodoro
+Press D to delete one pomodoro
 Press C to delete all pomodoros
-Ctrl-C exits.
+Press S to temporarily skip a pomodoro
+Press Q to exit
 """.strip().split("\n")
 
 COLORS = {
@@ -34,6 +37,8 @@ BCOLORS = {
 CURSOR_HIDE = "\x1b[?25l"
 CURSOR_SHOW = "\x1b[?25h"
 CLEARCOLOR = "\x1b[0m"
+SAVE_TERM = "\x1b[?1049h\x1b[H"
+RESTORE_TERM = "\x1b[?1049l" + CLEARCOLOR + CURSOR_SHOW
 
 def clear_screen():
     sys.stdout.write("\x1b[2J\x1b[H")
@@ -160,6 +165,7 @@ def do_new(poms, pos):
     new = input("New pomodoro: ")
     if new.strip() == "": return
     poms.insert(pos, new)
+    return new
 def save(poms):
     with open(POMS_SAVE, "w") as f:
         for pom in poms:
@@ -171,6 +177,7 @@ def load():
 
 if __name__ == '__main__':
     poms, latest_pomodoro = load(), None
+    stdout.write(SAVE_TERM)
     while True:
         kp = waiting(poms)
         if kp is None: continue
@@ -182,12 +189,16 @@ if __name__ == '__main__':
         while kp in "Rr" and latest_pomodoro is not None:
             poms.insert(0, latest_pomodoro)
             kp, latest_pomodoro = do_pomodoro(poms)
-        if kp == "N":
-            do_new(poms, 0)
-        if kp == "n":
+        if kp in "N":
+            latest_pomodoro = do_new(poms, 0)
+        if kp in "n":
             do_new(poms, len(poms))
+        if kp in "Ss":
+            latest_pomodoro = poms.pop(0)
+            poms.append(latest_pomodoro)
+        if kp in "Dd":
+            latest_pomodoro = poms.pop(0)
         save(poms)
-        if kp == "\x03": # Ctrl-C
-            clear_screen()
-            stdout.write(CURSOR_SHOW + CLEARCOLOR)
-            exit()
+        if kp in "Qq\x03": # Ctrl-C
+            break
+    stdout.write(RESTORE_TERM)
