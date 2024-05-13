@@ -8,16 +8,20 @@
 #
 # Released into the public domain by the author, Zachary Vance
 
-import datetime, os, readline, select, sys, termios, time, threading, tty
+import contextlib, datetime, os, readline, select, sys, termios, time, threading, tty, wave
 from sys import stdout
-from playsound import playsound
 
 CHIME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chime.wav")
-POMODORO_TIME = 20*60
+with contextlib.closing(wave.open(CHIME, 'rb')) as f:
+    CHIME_DURATION = f.getnframes() / float(f.getframerate())
+POMODORO_DURATION = 5 #20*60
+ALERT_DURATION = 30
 
-POMS_SAVE = os.path.expanduser("~/.poms")
+POMS_SAVE = os.path.expanduser("~/.pompompom")
+POMS_LOG = os.path.expanduser("~/.pompompom-done.txt")
 if os.path.isdir(POMS_SAVE):
     today = datetime.date.today().strftime("%Y-%m-%d")
+    POMS_LOG = os.path.join(POMS_SAVE, "{}.done.txt".format(today))
     POMS_SAVE = os.path.join(POMS_SAVE, "{}.txt".format(today))
 
 inst = """
@@ -38,6 +42,11 @@ Press     Q to exit (and delete)
 
 Press N to add a new pomodoro
 """.strip().split("\n")
+
+# So we can write without an error:
+#     if get_key(0.1) in "abc"
+# we add this as a signal value in place of None
+UNUSED_KEY = "?"
 
 COLORS = {
     "red": "\x1b[31m",
@@ -62,7 +71,13 @@ def now():
 # --------------- General UI -------------------
 
 stdin = os.fdopen(sys.stdin.fileno(), 'rb', buffering=0)
-def get_key(timeout=9999999): 
+def get_key(timeout=9999999, default=None): 
+    """
+    Return the pressed keyboard button as a string.
+    Note, sometimes buttons are more than one byte (ex. arrow keys)
+
+    The default value is returned ONLY if the optional timeout expires
+    """
     old_settings = termios.tcgetattr(stdin)
     try:
         tty.setraw(stdin)
@@ -74,9 +89,20 @@ def get_key(timeout=9999999):
             return kp.decode("utf8")
     finally:
         termios.tcsetattr(stdin, termios.TCSADRAIN, old_settings)
+    return default
 
 def clear_screen():
     stdout.write("\x1b[2J\x1b[H\x1b[?25l" + CURSOR_HIDE)
+
+def bell():
+    stdout.write("\x07") # Bell -- may be audible or visual
+    time.sleep(0.1)
+
+try:
+    from playsound import playsound
+except ModuleNotFoundError:
+    playsound = bell
+    CHIME_DURATION = 0.1
 
 def move (x, y):
     stdout.write("\033[%d;%dH" % (y,x))
@@ -146,8 +172,8 @@ def question(title, color):
 # --------------- Program UI -------------------
 
 def alarm():
-    def alarm_sound(stop_early, times=20):
-        for i in range(times):
+    def alarm_sound(stop_early, duration=ALERT_DURATION):
+        for i in range(duration // CHIME_DURATION):
             if stop_early.acquire(blocking=False):
                 stop_early.release()
                 playsound(CHIME, block=True)
@@ -183,7 +209,7 @@ def waiting(poms):
 
 # --------------- Program Logic ----------------
 
-def do_pomodoro(poms, duration=POMODORO_TIME):
+def do_pomodoro(poms, duration=POMODORO_DURATION):
     end = now() + duration
     pom = poms.pop(0)
     try:
@@ -191,7 +217,7 @@ def do_pomodoro(poms, duration=POMODORO_TIME):
             clear_screen()
             x1, x2, y = display_pom_card(pom)
             update_countdown(x1, x2, y, left)
-            kp = get_key(0.1)
+            kp = get_key(0.1, UNUSED_KEY)
             if kp is None: continue
             if kp in " ": # Pause the timer with space
                 # Space un-pauses, as does any successful action key
@@ -202,6 +228,8 @@ def do_pomodoro(poms, duration=POMODORO_TIME):
                 do_new(poms, len(poms))
     except KeyboardInterrupt:
         kp = "\x03"
+        kp = "q"
+    log_pomodoro_done(kp, pom)
     return kp, pom
         
 def do_new(poms, pos):
@@ -218,6 +246,10 @@ def load():
     if not os.path.exists(POMS_SAVE): return []
     with open(POMS_SAVE, "r") as f:
         return [x.strip() for x in list(f) if x.strip() != ""]
+
+def log_pomodoro_done(kp, task):
+    with open(POMS_LOG, "a") as f:
+        f.write("{} {}\n".format(kp, task))
 
 if __name__ == '__main__':
     poms, pom_last, pom_this = load(), None, None
