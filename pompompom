@@ -71,7 +71,7 @@ def get_key(timeout=9999999):
             kp = b""
             while select.select([stdin], [], [], 0.1)[0]:
                 kp += stdin.read(1)
-            return kp.decode("ascii")
+            return kp.decode("utf8")
     finally:
         termios.tcsetattr(stdin, termios.TCSADRAIN, old_settings)
 
