@@ -172,13 +172,20 @@ def confirm(prompt):
         kp = get_key()
         if kp in "Yy": return True
         if kp in "Nn\x03": return False
-def do_new(poms, pos):
+def question(title, color):
     clear_screen()
+    sw, sh = os.get_terminal_size()
+    x1, x2, y1, y2 = display_card(color, [" "*(sw-10)], title)
     stdout.write(CURSOR_SHOW)
     stdout.write(CLEARCOLOR)
-    new = input("New pomodoro: ")
-    if new.strip() == "": return
-    poms.insert(pos, new)
+    move(x1 + 2, y1)
+    try:
+        return input()
+    except KeyboardInterrupt: return ""
+def do_new(poms, pos):
+    new = question("new pomodoro", "green").strip()
+    if new != "":
+        poms.insert(pos, new)
     return new
 def save(poms):
     with open(POMS_SAVE, "w") as f:
