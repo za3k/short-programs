@@ -8,9 +8,9 @@
 #
 # Released into the public domain by the author, Zachary Vance
 
-from playsound import playsound
-import datetime, os, select, sys, time, threading, readline
+import datetime, os, readline, select, sys, termios, time, threading, tty
 from sys import stdout
+from playsound import playsound
 
 CHIME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chime.wav")
 POMODORO_TIME = 20*60
@@ -22,13 +22,13 @@ if os.path.isdir(POMS_SAVE):
 
 inst = """
 Press ENTER to do a pomodoro
-Press     N to make a new pomodoro
-Press     R to redo the latest pomodoro
+Press     N to add a new pomodoro
+Press     R to redo the last pomodoro
 
-Press D to delete one pomodoro
-Press C to clear all pomodoros
-Press S to skip a pomodoro
-Press Q to exit
+Press  DEL to delete a pomodoro
+Press    C to clear all pomodoros
+Press DOWN to skip a pomodoro
+Press    Q to exit
 """.strip().split("\n")
 
 pom_inst = """
@@ -36,7 +36,7 @@ Press SPACE to pause/unpause
 Press     R to restart the timer
 Press     Q to exit (and delete)
 
-Press N to make a new pomodoro
+Press N to add a new pomodoro
 """.strip().split("\n")
 
 COLORS = {
@@ -56,17 +56,48 @@ CURSOR_SHOW = "\x1b[?25h"
 SAVE_TERM = "\x1b[?1049h\x1b[H"
 RESTORE_TERM = "\x1b[?1049l\x1b[0m" + CURSOR_SHOW
 
+def now():
+    return float(time.time())
+
+# --------------- General UI -------------------
+
+stdin = os.fdopen(sys.stdin.fileno(), 'rb', buffering=0)
+def get_key(timeout=9999999): 
+    old_settings = termios.tcgetattr(stdin)
+    try:
+        tty.setraw(stdin)
+        rlist, _, _ = select.select([stdin], [], [], timeout)
+        if rlist:
+            kp = b""
+            while select.select([stdin], [], [], 0.1)[0]:
+                kp += stdin.read(1)
+            return kp.decode("ascii")
+    finally:
+        termios.tcsetattr(stdin, termios.TCSADRAIN, old_settings)
+
 def clear_screen():
     stdout.write("\x1b[2J\x1b[H\x1b[?25l" + CURSOR_HIDE)
+
+def move (x, y):
+    stdout.write("\033[%d;%dH" % (y,x))
+
+def blit(x, y, B, F, c):
+    move(x, y)
+    stdout.write(B)
+    stdout.write(F)
+    stdout.write(c)
+
 def write_left(x1, y, text, color):
     for dx, c in enumerate(text):
         blit(x1 + 2 + dx, y, BCOLORS["black"], COLORS[color], c)
     stdout.flush()
+
 def write_centered(x1, x2, y, text, color):
     sx = (x1 + x2 - len(text))//2
     for i, c in enumerate(text):
         blit(sx+i, y, BCOLORS["black"], COLORS[color], c)
     stdout.flush()
+
 def display_card(color, lines, label=""):
     sw, sh = os.get_terminal_size()
     width, height = max((len(x) for x in lines), default=0), len(lines)
@@ -93,51 +124,27 @@ def display_card(color, lines, label=""):
 
     stdout.flush()
     return x1+3, x2-2, y1+2, y2-1
-    
-def display_pom_card(task):
-    x1, x2, y1, y2 = display_card("green", [task, ""])
-    display_help(pom_inst)
-    return x1, x2, y2-2 # Timer location
-def display_prompt(prompt):
-    display_card("red", [prompt])
-def move (x, y):
-    stdout.write("\033[%d;%dH" % (y,x))
-def blit(x, y, B, F, c):
-    move(1,1)
-    move(x, y)
-    stdout.write(B)
-    stdout.write(F)
-    stdout.write(c)
-def display_poms(poms):
-    display_card("blue", poms, "pomodoros")
-def display_help(inst):
-    sw, sh = os.get_terminal_size()
-    for i, line in enumerate(inst):
-        write_left(0, sh-len(inst)+i, line, "green")
-def update_countdown(x1, x2, y, s):
-    m,s = s//60, (s%60)//1
-    write_centered(x1, x2, y, "%02d:%02d" % (m,s), "grey")
-def get_key(timeout=9999999): 
-    # multi-byte (arrows/delete/escape) actively cause bugs, not supported :(
-    import tty, sys, termios
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    end = now() + timeout
-    while now() < end:
-        try:
-            tty.setraw(sys.stdin.fileno())
-            INPUT_TIMEOUT = end-now()
-            rlist, _, _ = select.select([sys.stdin], [], [], INPUT_TIMEOUT)
-            if rlist:
-                return sys.stdin.read(1)
-            else:
-                return None
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-def now():
-    return float(time.time())
 
-# -------------------------------------------------
+def confirm(prompt):
+    clear_screen()
+    display_card("red", [prompt + " (Y/N)"])
+    while True:
+        kp = get_key()
+        if kp in "Yy": return True
+        if kp in "Nn\x03": return False
+
+def question(title, color):
+    clear_screen()
+    width = os.get_terminal_size()[0]-10
+    x1, x2, y1, y2 = display_card(color, [" "*width], title)
+    move(x1, y1)
+    try:
+        stdout.write(CURSOR_SHOW)
+        return input()
+    except KeyboardInterrupt: return ""
+
+# --------------- Program UI -------------------
+
 def alarm():
     def alarm_sound(stop_early, times=20):
         for i in range(times):
@@ -150,11 +157,32 @@ def alarm():
     kp = get_key()
     stop_early.acquire()
     return kp
+    
+def display_pom_card(task):
+    x1, x2, y1, y2 = display_card("green", [task, ""])
+    display_help(pom_inst)
+    return x1, x2, y2-2 # Timer location
+
+def display_poms(poms):
+    display_card("blue", poms, "pomodoros")
+
+def display_help(inst):
+    sw, sh = os.get_terminal_size()
+    for i, line in enumerate(inst):
+        write_left(0, sh-len(inst)+i, line, "green")
+
+def update_countdown(x1, x2, y, s):
+    m,s = s//60, (s%60)//1
+    write_centered(x1, x2, y, "%02d:%02d" % (m,s), "grey")
+
 def waiting(poms):
     clear_screen()
     display_poms(poms)
     display_help(inst)
     return get_key()
+
+# --------------- Program Logic ----------------
+
 def do_pomodoro(poms):
     end = now() + POMODORO_TIME
     pom = poms.pop(0)
@@ -176,30 +204,16 @@ def do_pomodoro(poms):
         kp = "q"
     return kp, pom
         
-def confirm(prompt):
-    clear_screen()
-    display_prompt(prompt + " (Y/N)")
-    while True:
-        kp = get_key()
-        if kp in "Yy": return True
-        if kp in "Nn\x03": return False
-def question(title, color):
-    clear_screen()
-    width = os.get_terminal_size()[0]-10
-    x1, x2, y1, y2 = display_card(color, [" "*width], title)
-    move(x1, y1)
-    try:
-        stdout.write(CURSOR_SHOW)
-        return input()
-    except KeyboardInterrupt: return ""
 def do_new(poms, pos):
     if new := question("new pomodoro", "green").strip():
         poms.insert(pos, new)
     return new
+
 def save(poms):
     with open(POMS_SAVE, "w") as f:
         for pom in poms:
             f.write(pom + "\n")
+
 def load():
     if not os.path.exists(POMS_SAVE): return []
     with open(POMS_SAVE, "r") as f:
@@ -208,13 +222,13 @@ def load():
 if __name__ == '__main__':
     poms, latest_pomodoro = load(), None
     stdout.write(SAVE_TERM)
-    while (kp := waiting(poms)) not in "Qq\x03":
-        if kp in " \rPp" and (poms or do_new(poms, 0)):
+    while (kp := waiting(poms)) not in "Qq\x03": # Ctrl-C
+        if kp in "Pp \r" and (poms or do_new(poms, 0)): # Enter
             kp, latest_pomodoro = do_pomodoro(poms)
         while kp in "Rr" and latest_pomodoro:
             poms.insert(0, latest_pomodoro)
             kp, latest_pomodoro = do_pomodoro(poms)
-        if kp in "CcDdNnSs\x08":
+        if kp in "CcDdNnSs\x08" or kp in ["\x1b[A", "\x1b[B", "\x1b[C", "\x1b[D"]:
             latest_pomodoro = None
 
         if kp in "Cc" and poms and confirm("Really delete all pomodoros?"):
@@ -223,11 +237,11 @@ if __name__ == '__main__':
             do_new(poms, 0)
         if kp in "n":
             do_new(poms, len(poms))
-        if kp in "s" and poms:
+        if kp in ["s", "\x1b[B", "\x1b[C"] and poms: # Left, Down
             poms.append(poms.pop(0))
-        if kp in "S" and poms:
+        if kp in ["S", "\x1b[A", "\x1b[D"] and poms: # Right, Up
             poms.insert(0, poms.pop())
-        if kp in "Dd\x08" and poms: # Ox08 is backspace
+        if kp in ["D", "d", "\x08", "\x1b[3~"] and poms: # Del, Backspace
             poms.pop(0)
         save(poms)
     stdout.write(RESTORE_TERM)
