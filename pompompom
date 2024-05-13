@@ -1,20 +1,34 @@
 #!/bin/python3
-from playsound import playsound
-import os, select, sys, time, threading
-from sys import stdout
-import readline
 
-POMS_SAVE = os.path.expanduser("~/.poms")
+# A small pomodoro app with a built-in queue
+# Meant for focus, and throwing it away without much thought each day.
+#
+# If you want to have a blank list every day, delete ~/.poms and make it a directory
+# Or you can press "C" to manually throw everything away.
+#
+# Released into the public domain by the author, Zachary Vance
+
+from playsound import playsound
+import datetime, os, select, sys, time, threading, readline
+from sys import stdout
+
 CHIME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chime.wav")
 POMODORO_TIME = 20*60
-inst = """
-Press N to make a new pomodoro (Shift-N to add at the top)
-Press P to do a pomodoro
 
-Press R to redo the latest pomodoro
+# 
+POMS_SAVE = os.path.expanduser("~/.poms")
+if os.path.isdir(POMS_SAVE):
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    POMS_SAVE = os.path.join(POMS_SAVE, "{}.txt".format(today))
+
+inst = """
+Press     N to make a new pomodoro
+Press SPACE to do a pomodoro
+Press     R to redo the latest pomodoro
+
 Press D to delete one pomodoro
-Press C to delete all pomodoros
-Press S to temporarily skip a pomodoro
+Press C to clear all pomodoros
+Press S to skip a pomodoro
 Press Q to exit
 """.strip().split("\n")
 
@@ -176,15 +190,19 @@ def load():
         return [x.strip() for x in list(f) if x.strip() != ""]
 
 if __name__ == '__main__':
+
     poms, latest_pomodoro = load(), None
     stdout.write(SAVE_TERM)
     while True:
         kp = waiting(poms)
+        while False and kp not in "CcPpRrNnSsDdQq \r\x03": # Debugging
+            print(repr(kp))
+            kp = get_key()
         if kp is None: continue
         if kp in "Cc":
             if confirm("Really delete all pomodoros?"):
                 poms = []
-        if kp in "Pp" and len(poms) > 0:
+        if kp in " \rPp" and len(poms) > 0:
             kp, latest_pomodoro = do_pomodoro(poms)
         while kp in "Rr" and latest_pomodoro is not None:
             poms.insert(0, latest_pomodoro)
@@ -193,11 +211,12 @@ if __name__ == '__main__':
             latest_pomodoro = do_new(poms, 0)
         if kp in "n":
             do_new(poms, len(poms))
-        if kp in "Ss":
-            latest_pomodoro = poms.pop(0)
-            poms.append(latest_pomodoro)
+        if kp in "s":
+            poms.append(poms.pop(0))
+        if kp in "S":
+            poms.insert(0, poms.pop())
         if kp in "Dd":
-            latest_pomodoro = poms.pop(0)
+            poms.pop(0)
         save(poms)
         if kp in "Qq\x03": # Ctrl-C
             break
