@@ -63,7 +63,7 @@ BCOLORS = {
 CURSOR_HIDE = "\x1b[?25l"
 CURSOR_SHOW = "\x1b[?25h"
 SAVE_TERM = "\x1b[?1049h\x1b[H"
-RESTORE_TERM = "\x1b[?1049l\x1b[0m" + CURSOR_SHOW
+RESTORE_TERM = "\x1b[?1049l\x1b[0m\x1b[?5l" + CURSOR_SHOW
 
 def now():
     return float(time.time())
@@ -92,17 +92,23 @@ def get_key(timeout=9999999, default=None):
     return default
 
 def clear_screen():
-    stdout.write("\x1b[2J\x1b[H\x1b[?25l" + CURSOR_HIDE)
+    stdout.write("\x1b[2J\x1b[H\x1b[?25l\x1b[?5l" + CURSOR_HIDE)
 
 def bell():
     stdout.write("\x07") # Bell -- may be audible or visual
-    time.sleep(0.1)
+    # Visual bell manually
+    stdout.write("\x1b[?5h")
+    stdout.flush()
+    time.sleep(1)
+    stdout.write("\x1b[?5l")
+    stdout.flush()
+    time.sleep(1)
 
 try:
     from playsound import playsound
 except ModuleNotFoundError:
-    playsound = bell
-    CHIME_DURATION = 0.1
+    playsound = lambda *a, **v: bell()
+    CHIME_DURATION = 2
 
 def move (x, y):
     stdout.write("\033[%d;%dH" % (y,x))
@@ -173,7 +179,7 @@ def question(title, color):
 
 def alarm():
     def alarm_sound(stop_early, duration=ALERT_DURATION):
-        for i in range(duration // CHIME_DURATION):
+        for i in range(int(duration / CHIME_DURATION)):
             if stop_early.acquire(blocking=False):
                 stop_early.release()
                 playsound(CHIME, block=True)
@@ -223,9 +229,10 @@ def do_pomodoro(poms, duration=POMODORO_DURATION):
                 # Space un-pauses, as does any successful action key
                 while (kp := get_key()) not in "QqRr n\x03": pass
                 end = left + now()
-            if kp in "qQrR\x03": break # Do that thing, whatever it is
+            if kp in "qQrR\x03": return kp, pom
             if kp in "n":
                 do_new(poms, len(poms))
+        kp = alarm()
     except KeyboardInterrupt:
         kp = "\x03"
         kp = "q"
