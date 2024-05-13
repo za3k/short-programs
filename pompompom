@@ -183,8 +183,8 @@ def waiting(poms):
 
 # --------------- Program Logic ----------------
 
-def do_pomodoro(poms):
-    end = now() + POMODORO_TIME
+def do_pomodoro(poms, duration=POMODORO_TIME):
+    end = now() + duration
     pom = poms.pop(0)
     try:
         while (left := end - now()) > 0:
@@ -201,7 +201,7 @@ def do_pomodoro(poms):
             if kp in "n":
                 do_new(poms, len(poms))
     except KeyboardInterrupt:
-        kp = "q"
+        kp = "\x03"
     return kp, pom
         
 def do_new(poms, pos):
