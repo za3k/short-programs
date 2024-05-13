@@ -220,16 +220,15 @@ def load():
         return [x.strip() for x in list(f) if x.strip() != ""]
 
 if __name__ == '__main__':
-    poms, latest_pomodoro = load(), None
+    poms, pom_last, pom_this = load(), None, None
     stdout.write(SAVE_TERM)
     while (kp := waiting(poms)) not in "Qq\x03": # Ctrl-C
+        pom_this, pom_last = None, pom_this
         if kp in "Pp \r" and (poms or do_new(poms, 0)): # Enter
-            kp, latest_pomodoro = do_pomodoro(poms)
-        while kp in "Rr" and latest_pomodoro:
-            poms.insert(0, latest_pomodoro)
-            kp, latest_pomodoro = do_pomodoro(poms)
-        if kp in "CcDdNnSs\x08" or kp in ["\x1b[A", "\x1b[B", "\x1b[C", "\x1b[D"]:
-            latest_pomodoro = None
+            kp, pom_this = do_pomodoro(poms)
+        while kp in "Rr" and (pom_last := (pom_this or pom_last)):
+            poms.insert(0, pom_last)
+            kp, pom_this = do_pomodoro(poms)
 
         if kp in "Cc" and poms and confirm("Really delete all pomodoros?"):
             poms, latest_pomodoro = [], None
