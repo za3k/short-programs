@@ -15,15 +15,14 @@ from sys import stdout
 CHIME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chime.wav")
 POMODORO_TIME = 20*60
 
-# 
 POMS_SAVE = os.path.expanduser("~/.poms")
 if os.path.isdir(POMS_SAVE):
     today = datetime.date.today().strftime("%Y-%m-%d")
     POMS_SAVE = os.path.join(POMS_SAVE, "{}.txt".format(today))
 
 inst = """
-Press     N to make a new pomodoro
 Press SPACE to do a pomodoro
+Press     N to make a new pomodoro
 Press     R to redo the latest pomodoro
 
 Press D to delete one pomodoro
@@ -116,6 +115,8 @@ def update_countdown(x1, x2, y, s):
     m,s = s//60, (s%60)//1
     write_centered(x1, x2, y, "%02d:%02d" % (m,s), "grey")
 def get_key():
+    # Timeouts not supported
+    # arrow keys, delete, escape key not supported
     import tty, sys, termios
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -190,34 +191,33 @@ def load():
         return [x.strip() for x in list(f) if x.strip() != ""]
 
 if __name__ == '__main__':
-
     poms, latest_pomodoro = load(), None
     stdout.write(SAVE_TERM)
     while True:
         kp = waiting(poms)
-        while False and kp not in "CcPpRrNnSsDdQq \r\x03": # Debugging
-            print(repr(kp))
-            kp = get_key()
         if kp is None: continue
-        if kp in "Cc":
-            if confirm("Really delete all pomodoros?"):
-                poms = []
+        if kp not in "CcDdNnPpQqRrSs\r \x03\x08": continue
+        if kp in "Qq\x03": break # Ox03 is ctrl-C
+
         if kp in " \rPp" and len(poms) > 0:
             kp, latest_pomodoro = do_pomodoro(poms)
         while kp in "Rr" and latest_pomodoro is not None:
             poms.insert(0, latest_pomodoro)
             kp, latest_pomodoro = do_pomodoro(poms)
+        if kp not in "PpRr \r":
+            latest_pomodoro = None
+
+        if kp in "Cc" and confirm("Really delete all pomodoros?"):
+            poms, latest_pomodoro = [], None
         if kp in "N":
-            latest_pomodoro = do_new(poms, 0)
+            do_new(poms, 0)
         if kp in "n":
             do_new(poms, len(poms))
         if kp in "s":
             poms.append(poms.pop(0))
         if kp in "S":
             poms.insert(0, poms.pop())
-        if kp in "Dd":
+        if kp in "Dd\x08": # Ox08 is backspace
             poms.pop(0)
         save(poms)
-        if kp in "Qq\x03": # Ctrl-C
-            break
     stdout.write(RESTORE_TERM)
