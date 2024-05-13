@@ -198,7 +198,7 @@ if __name__ == '__main__':
     poms, latest_pomodoro = load(), None
     stdout.write(SAVE_TERM)
     while (kp := waiting(poms)) not in "Qq\x03":
-        if kp in " \rPp" and poms:
+        if kp in " \rPp" and (poms or do_new(poms, 0)):
             kp, latest_pomodoro = do_pomodoro(poms)
         while kp in "Rr" and latest_pomodoro:
             poms.insert(0, latest_pomodoro)
