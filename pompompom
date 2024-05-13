@@ -21,7 +21,7 @@ if os.path.isdir(POMS_SAVE):
     POMS_SAVE = os.path.join(POMS_SAVE, "{}.txt".format(today))
 
 inst = """
-Press SPACE to do a pomodoro
+Press ENTER to do a pomodoro
 Press     N to make a new pomodoro
 Press     R to redo the latest pomodoro
 
@@ -71,7 +71,7 @@ def display_card(color, lines, label=""):
     if label: 
         label = " " + label + " "
         width = max(width, len(label))
-    width, height = width + 4, height + 4
+    width, height = width + 6, height + 4
     width = max(width, 15)
     x1, y1 = (sw-width)//2, (sh-height)//2
     x2, y2 = x1+width, y1+height
@@ -87,10 +87,10 @@ def display_card(color, lines, label=""):
         write_centered(x1, x2, y1, label, color)
 
     for dy, line in enumerate(lines): 
-        write_left(x1, y1 + 2 + dy, line, color)
+        write_left(x1 + 1, y1 + 2 + dy, line, color)
 
     stdout.flush()
-    return x1+2, x2-2, y1+2, y2-1
+    return x1+3, x2-2, y1+2, y2-1
     
 def display_pom_card(task):
     x1, x2, y1, y2 = display_card("green", [task, ""])
@@ -174,17 +174,15 @@ def confirm(prompt):
         if kp in "Nn\x03": return False
 def question(title, color):
     clear_screen()
-    sw, sh = os.get_terminal_size()
-    x1, x2, y1, y2 = display_card(color, [" "*(sw-10)], title)
-    stdout.write(CURSOR_SHOW)
-    stdout.write(CLEARCOLOR)
-    move(x1 + 2, y1)
+    width = os.get_terminal_size()[0]-10
+    x1, x2, y1, y2 = display_card(color, [" "*width], title)
+    move(x1, y1)
     try:
+        stdout.write(CURSOR_SHOW)
         return input()
     except KeyboardInterrupt: return ""
 def do_new(poms, pos):
-    new = question("new pomodoro", "green").strip()
-    if new != "":
+    if new := question("new pomodoro", "green").strip():
         poms.insert(pos, new)
     return new
 def save(poms):
@@ -199,18 +197,13 @@ def load():
 if __name__ == '__main__':
     poms, latest_pomodoro = load(), None
     stdout.write(SAVE_TERM)
-    while True:
-        kp = waiting(poms)
-        if kp is None: continue
-        if kp not in "CcDdNnPpQqRrSs\r \x03\x08": continue
-        if kp in "Qq\x03": break # Ox03 is ctrl-C
-
+    while (kp := waiting(poms)) not in "Qq\x03":
         if kp in " \rPp" and poms:
             kp, latest_pomodoro = do_pomodoro(poms)
         while kp in "Rr" and latest_pomodoro:
             poms.insert(0, latest_pomodoro)
             kp, latest_pomodoro = do_pomodoro(poms)
-        if kp not in "PpRr \r":
+        if kp in "CcDdNnSs\x08":
             latest_pomodoro = None
 
         if kp in "Cc" and poms and confirm("Really delete all pomodoros?"):
