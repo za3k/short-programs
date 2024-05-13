@@ -14,7 +14,7 @@ from sys import stdout
 CHIME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chime.wav")
 with contextlib.closing(wave.open(CHIME, 'rb')) as f:
     CHIME_DURATION = f.getnframes() / float(f.getframerate())
-POMODORO_DURATION = 5 #20*60
+POMODORO_DURATION = 20*60
 ALERT_DURATION = 30
 
 POMS_SAVE = os.path.expanduser("~/.pompompom")
