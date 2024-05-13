@@ -32,6 +32,7 @@ Press Q to exit
 """.strip().split("\n")
 
 COLORS = {
+    "black": "\x1b[30m",
     "red": "\x1b[31m",
     "green": "\x1b[32m",
     "yellow": "\x1b[33m",
@@ -114,18 +115,21 @@ def display_help():
 def update_countdown(x1, x2, y, s):
     m,s = s//60, (s%60)//1
     write_centered(x1, x2, y, "%02d:%02d" % (m,s), "grey")
-def get_key(): 
+def get_key(timeout=9999999): 
     # multi-byte (arrows/delete/escape) actively cause bugs, not supported :(
     import tty, sys, termios
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
-    while True:
+    end = now() + timeout
+    while now() < end:
         try:
             tty.setraw(sys.stdin.fileno())
-            INPUT_TIMEOUT = 1.0
+            INPUT_TIMEOUT = end-now()
             rlist, _, _ = select.select([sys.stdin], [], [], INPUT_TIMEOUT)
             if rlist:
                 return sys.stdin.read(1)
+            else:
+                return None
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 def now():
@@ -150,23 +154,30 @@ def waiting(poms):
     display_help()
     return get_key()
 def do_pomodoro(poms):
-    old_size = None
-    start = now()
-    end = start + POMODORO_TIME
+    end = now() + POMODORO_TIME
+    pom = poms.pop(0)
+    kp = ""
     try:
-        while now() < end:
-            if os.get_terminal_size() != old_size:
-                old_size = os.get_terminal_size()
-                clear_screen()
-                x1, x2, y = display_pom_card(poms[0])
-            update_countdown(x1, x2, y, end - now())
-            time.sleep(0.1) # TODO: get_key with timeout here instead
-        kp = alarm()
+        while (left := end - now()) > 0:
+            clear_screen()
+            x1, x2, y = display_pom_card(pom)
+            update_countdown(x1, x2, y, left)
+            kp = get_key(0.1)
+            if kp is None: continue
+            if kp in " ": # Pause the timer with space
+                left = end - now()
+                # Space un-pauses, as does any successful action key
+                while (kp := get_key()) not in "QqRr n\x03": pass
+                end = left + now()
+            if kp in "qQrR\x03": break # Do that thing, whatever it is
+            if kp in "n":
+                do_new(poms, len(poms))
+
     except KeyboardInterrupt:
         kp = "q"
-    return kp, poms.pop(0)
+    return kp, pom
+        
 def confirm(prompt):
-    clear_screen()
     display_prompt(prompt + " (Y/N)")
     while True:
         kp = get_key()
