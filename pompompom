@@ -31,32 +31,33 @@ Press S to skip a pomodoro
 Press Q to exit
 """.strip().split("\n")
 
+pom_inst = """
+Press SPACE to pause/unpause
+Press     R to restart the timer
+Press     Q to exit (and delete)
+
+Press N to make a new pomodoro
+""".strip().split("\n")
+
 COLORS = {
-    "black": "\x1b[30m",
     "red": "\x1b[31m",
     "green": "\x1b[32m",
-    "yellow": "\x1b[33m",
     "blue": "\x1b[34m",
-    "white": "\x1b[37m",
     "grey": "\x1b[90m",
 }
 BCOLORS = {
     "black": "\x1b[40m",
     "red": "\x1b[41m",
     "green": "\x1b[42m",
-    "yellow": "\x1b[43m",
     "blue": "\x1b[44m",
-    "white": "\x1b[47m",
 }
 CURSOR_HIDE = "\x1b[?25l"
 CURSOR_SHOW = "\x1b[?25h"
-CLEARCOLOR = "\x1b[0m"
 SAVE_TERM = "\x1b[?1049h\x1b[H"
-RESTORE_TERM = "\x1b[?1049l" + CLEARCOLOR + CURSOR_SHOW
+RESTORE_TERM = "\x1b[?1049l\x1b[0m" + CURSOR_SHOW
 
 def clear_screen():
-    sys.stdout.write("\x1b[2J\x1b[H")
-    stdout.write(CURSOR_HIDE)
+    stdout.write("\x1b[2J\x1b[H\x1b[?25l" + CURSOR_HIDE)
 def write_left(x1, y, text, color):
     for dx, c in enumerate(text):
         blit(x1 + 2 + dx, y, BCOLORS["black"], COLORS[color], c)
@@ -95,6 +96,7 @@ def display_card(color, lines, label=""):
     
 def display_pom_card(task):
     x1, x2, y1, y2 = display_card("green", [task, ""])
+    display_help(pom_inst)
     return x1, x2, y2-2 # Timer location
 def display_prompt(prompt):
     display_card("red", [prompt])
@@ -108,7 +110,7 @@ def blit(x, y, B, F, c):
     stdout.write(c)
 def display_poms(poms):
     display_card("blue", poms, "pomodoros")
-def display_help():
+def display_help(inst):
     sw, sh = os.get_terminal_size()
     for i, line in enumerate(inst):
         write_left(0, sh-len(inst)+i, line, "green")
@@ -151,12 +153,11 @@ def alarm():
 def waiting(poms):
     clear_screen()
     display_poms(poms)
-    display_help()
+    display_help(inst)
     return get_key()
 def do_pomodoro(poms):
     end = now() + POMODORO_TIME
     pom = poms.pop(0)
-    kp = ""
     try:
         while (left := end - now()) > 0:
             clear_screen()
@@ -165,19 +166,18 @@ def do_pomodoro(poms):
             kp = get_key(0.1)
             if kp is None: continue
             if kp in " ": # Pause the timer with space
-                left = end - now()
                 # Space un-pauses, as does any successful action key
                 while (kp := get_key()) not in "QqRr n\x03": pass
                 end = left + now()
             if kp in "qQrR\x03": break # Do that thing, whatever it is
             if kp in "n":
                 do_new(poms, len(poms))
-
     except KeyboardInterrupt:
         kp = "q"
     return kp, pom
         
 def confirm(prompt):
+    clear_screen()
     display_prompt(prompt + " (Y/N)")
     while True:
         kp = get_key()
