@@ -25,22 +25,15 @@ if os.path.isdir(POMS_SAVE):
     POMS_SAVE = os.path.join(POMS_SAVE, "{}.txt".format(today))
 
 inst = """
-Press ENTER to do a pomodoro
-Press     N to add a new pomodoro
-Press     R to redo the last pomodoro
-
-Press  DEL to delete a pomodoro
-Press    C to clear all pomodoros
-Press DOWN to skip a pomodoro
-Press    Q to exit
+ENTER to do a pom               DEL to delete a pom
+    N to add a new pom            C to clear all poms
+    R to redo the last pom     DOWN to skip a pom
+    Q exits
 """.strip().split("\n")
 
 pom_inst = """
-Press SPACE to pause/unpause
-Press     R to restart the timer
-Press     Q to exit (and delete)
-
-Press N to add a new pomodoro
+SPACE to pause/unpause         N to add a new pom
+    R to restart the timer     Q to exit (and delete)
 """.strip().split("\n")
 
 # So we can write without an error:
@@ -121,7 +114,7 @@ def blit(x, y, B, F, c):
 
 def write_left(x1, y, text, color):
     for dx, c in enumerate(text):
-        blit(x1 + 2 + dx, y, BCOLORS["black"], COLORS[color], c)
+        blit(x1 + 1 + dx, y, BCOLORS["black"], COLORS[color], c)
     stdout.flush()
 
 def write_centered(x1, x2, y, text, color):
@@ -152,7 +145,7 @@ def display_card(color, lines, label=""):
         write_centered(x1, x2, y1, label, color)
 
     for dy, line in enumerate(lines): 
-        write_left(x1 + 1, y1 + 2 + dy, line, color)
+        write_left(x1 + 2, y1 + 2 + dy, line, color)
 
     stdout.flush()
     return x1+3, x2-2, y1+2, y2-1
@@ -192,18 +185,17 @@ def alarm():
     
 def display_pom_card(task):
     x1, x2, y1, y2 = display_card("green", [task, ""])
-    display_help(pom_inst, y2)
+    display_help(pom_inst)
     return x1, x2, y2-2 # Timer location
 
 def display_poms(poms):
     return display_card("blue", poms, "pomodoros")
 
-def display_help(inst, y_cutoff):
+def display_help(inst):
     sw, sh = os.get_terminal_size()
+    if sh < 10: return
     for i, line in enumerate(inst):
-        y = sh-len(inst) + i
-        if y > y_cutoff:
-            write_left(0, sh-len(inst)+i, line, "green")
+        write_left(0, sh-len(inst)+i+1, line, "green")
 
 def update_countdown(x1, x2, y, s):
     m,s = s//60, (s%60)//1
@@ -211,8 +203,8 @@ def update_countdown(x1, x2, y, s):
 
 def waiting(poms):
     clear_screen()
-    _, _, _, y2 = display_poms(poms)
-    display_help(inst, y2)
+    display_poms(poms)
+    display_help(inst)
     return get_key()
 
 # --------------- Program Logic ----------------
