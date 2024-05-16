@@ -192,16 +192,18 @@ def alarm():
     
 def display_pom_card(task):
     x1, x2, y1, y2 = display_card("green", [task, ""])
-    display_help(pom_inst)
+    display_help(pom_inst, y2)
     return x1, x2, y2-2 # Timer location
 
 def display_poms(poms):
-    display_card("blue", poms, "pomodoros")
+    return display_card("blue", poms, "pomodoros")
 
-def display_help(inst):
+def display_help(inst, y_cutoff):
     sw, sh = os.get_terminal_size()
     for i, line in enumerate(inst):
-        write_left(0, sh-len(inst)+i, line, "green")
+        y = sh-len(inst) + i
+        if y > y_cutoff:
+            write_left(0, sh-len(inst)+i, line, "green")
 
 def update_countdown(x1, x2, y, s):
     m,s = s//60, (s%60)//1
@@ -209,8 +211,8 @@ def update_countdown(x1, x2, y, s):
 
 def waiting(poms):
     clear_screen()
-    display_poms(poms)
-    display_help(inst)
+    _, _, _, y2 = display_poms(poms)
+    display_help(inst, y2)
     return get_key()
 
 # --------------- Program Logic ----------------
@@ -270,6 +272,7 @@ if __name__ == '__main__':
             kp, pom_this = do_pomodoro(poms)
 
         if kp in "Cc" and poms and confirm("Really delete all pomodoros?"):
+            for pom in poms: log_pomodoro_done(kp, pom)
             poms, latest_pomodoro = [], None
         if kp in "N":
             do_new(poms, 0)
@@ -280,6 +283,7 @@ if __name__ == '__main__':
         if kp in ["S", "\x1b[A", "\x1b[D"] and poms: # Right, Up
             poms.insert(0, poms.pop())
         if kp in ["D", "d", "\x08", "\x1b[3~"] and poms: # Del, Backspace
-            poms.pop(0)
+            pom = poms.pop(0)
+            log_pomodoro_done(kp, pom)
         save(poms)
     stdout.write(RESTORE_TERM)
