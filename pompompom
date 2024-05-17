@@ -100,8 +100,7 @@ def bell():
 try:
     from playsound import playsound
 except ModuleNotFoundError:
-    playsound = lambda *a, **v: bell()
-    CHIME_DURATION = 2
+    playsound = lambda *a, **v: 1
 
 def move (x, y):
     stdout.write("\033[%d;%dH" % (y,x))
@@ -176,9 +175,13 @@ def alarm():
             if stop_early.acquire(blocking=False):
                 stop_early.release()
                 playsound(CHIME, block=True)
+    def alarm_flash(stop_early):
+        while stop_early.acquire(blocking=False):
+            stop_early.release()
+            bell()
     stop_early = threading.Semaphore()
-    t = threading.Thread(target=alarm_sound, args=[stop_early])
-    t.start()
+    threading.Thread(target=alarm_sound, args=[stop_early]).start()
+    threading.Thread(target=alarm_flash, args=[stop_early]).start()
     kp = get_key()
     stop_early.acquire()
     return kp
@@ -195,7 +198,7 @@ def display_help(inst):
     sw, sh = os.get_terminal_size()
     if sh < 10: return
     for i, line in enumerate(inst):
-        write_left(0, sh-len(inst)+i+1, line, "green")
+        write_left(1, sh-len(inst)+i+1, line, "green")
 
 def update_countdown(x1, x2, y, s):
     m,s = s//60, (s%60)//1
