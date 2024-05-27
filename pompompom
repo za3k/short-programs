@@ -196,7 +196,8 @@ def display_poms(poms):
 
 def display_help(inst):
     sw, sh = os.get_terminal_size()
-    if sh < 10: return
+    if sw < max(len(x) for x in inst) or sh < 10:
+        return
     for i, line in enumerate(inst):
         write_left(1, sh-len(inst)+i+1, line, "green")
 
