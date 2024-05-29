@@ -483,6 +483,13 @@ torrent\_size
 ---
 Display the size of a torrent file
 
+unix2date
+---
+Example:
+
+    $ unix2date 1680474618
+    Sun Apr  2 06:30:18 PM EDT 2023
+
 video-linter
 ---
 Check whether videos are correctly renamed and organized. Only useful to me.
