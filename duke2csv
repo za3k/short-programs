@@ -1,0 +1,21 @@
+#!/bin/python3
+import csv, datetime
+import xml.etree.ElementTree as ET
+
+tree = ET.parse("Energy Usage.xml").getroot()
+csvfile = open("duke-energy.csv", "w")
+
+csv = csv.writer(csvfile)
+csv.writerow(["time (local)", "watts", "quality", "timestamp", "quality"])
+
+for child in tree[1][1].findall("{http://naesb.org/espi}IntervalReading"):
+    start = child.find("{http://naesb.org/espi}timePeriod").find("{http://naesb.org/espi}start").text
+    quality = child.find("{http://naesb.org/espi}readingQuality").text
+    value = child.find("{http://naesb.org/espi}value").text
+    watts = float(value)*1000 * 4 # Because it's in delta kWH, for 0.25 hours
+
+    dt = datetime.datetime.fromtimestamp(int(start))
+    date = dt.strftime('%Y-%m-%d')
+    time = dt.strftime('%H:%M:%S')
+
+    csv.writerow([date + " " + time, watts, quality, start])
