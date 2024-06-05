@@ -35,11 +35,12 @@ def run_without_root(args):
     )
 
 def install():
-    myname = sys.argv[0].split("/")[-1]
+    binary = os.path.abspath(__file__)
+    #myname = sys.argv[0].split("/")[-1]
     DESKTOP_NAME = "mailto-opener.desktop"
     DESKTOP_PATH = os.path.join("/usr/local/share/applications", DESKTOP_NAME)
     with open(DESKTOP_PATH, "w") as f:
-        f.write(DESKTOP.format(BIN=myname))
+        f.write(DESKTOP.format(BIN=binary))
     run(["desktop-file-validate", DESKTOP_PATH])
 
     # Drop privileges for xdg-mime parts, so it updates the correct user
@@ -74,15 +75,9 @@ def make_url(to, subject=None, body=None):
     }
     return url + "&".join(f"{k}={v}".format(k,v) for k, v in params.items() if v is not None)
 
-def execv(args):
-    command = args[0]
-    # Resolve to an absolute path using PATH var
-    command = check_output(["which", command]).decode("utf8")[:-1]
-    os.execv(command, args)
-
 def visit(url):
     browser = os.environ.get("BROWSER", DEFAULT_BROWSER)
-    execv([browser, url])
+    os.execvp(browser, [browser, url])
 
 if __name__ == '__main__':
     if sys.argv[1] == "--install":
