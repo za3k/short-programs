@@ -95,6 +95,12 @@ dfa2regex.py
 ---
 Needs to be hand-edited. Makes a regex out of any DFA.
 
+duke2csv
+---
+Converts 'Usage Report.xml' from Duke energy, to a reasonable CSV format.
+
+Usage: `duke2csv` (in same directory as "Usage Report.xml")
+
 dzen-clock
 ---
 Make a small clock at the bottom of the screen
@@ -227,6 +233,18 @@ Example:
 lwjgl-fix
 ---
 On Arch Linux, fix lwjgl.jar in minecraft
+
+mailto-opener
+---
+Open email links in Roundcube. Edit the file to change the URL.
+
+Installation (as default opener):
+    
+    sudo mailto-opener --install
+
+Usage:
+
+    mailto-opener "mailto:za3k@za3k.com"
 
 math
 ---

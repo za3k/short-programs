@@ -1,0 +1,98 @@
+#!/bin/python3
+"""
+Open a mailto: link
+
+Takes one argument of the form
+    mailto:me@mail.com?subject=mysubject&body=mybody
+Opens in a browser the URL
+    https://webmail.za3k.com/?_task=mail&_action=compose&_to=me@mail.com&_subject=mysubject&_message=mybody
+
+To set this as your program to open mailto links, run:
+    sudo mailto-opener --install
+"""
+import pwd, grp
+import os, sys
+from subprocess import check_output, run
+
+ROUNDCUBE_BASE_URL="https://webmail.za3k.com/"
+DEFAULT_BROWSER="xdg-open"
+
+DESKTOP="""
+[Desktop Entry]
+Type=Application
+Name=mailto: link opener (github.com/za3k/short-programs)
+
+# The executable of the application, possibly with arguments.
+Exec={BIN} %u
+"""
+
+def run_without_root(args):
+    run(
+        ["sudo", 
+            "-u", "#"+os.environ.get("SUDO_UID"),
+            "-g", "#"+os.environ.get("SUDO_GID")]+
+        args
+    )
+
+def install():
+    myname = sys.argv[0].split("/")[-1]
+    DESKTOP_NAME = "mailto-opener.desktop"
+    DESKTOP_PATH = os.path.join("/usr/local/share/applications", DESKTOP_NAME)
+    with open(DESKTOP_PATH, "w") as f:
+        f.write(DESKTOP.format(BIN=myname))
+    run(["desktop-file-validate", DESKTOP_PATH])
+
+    # Drop privileges for xdg-mime parts, so it updates the correct user
+
+    # This works for xdg-open "mailto:"
+    # Note that you may need to restart your browser, because several cache the mailto program.
+    run_without_root(["xdg-mime", "default", DESKTOP_NAME, "x-scheme-handler/mailto"])
+
+def parse_mailto(url):
+    with open("/home/zachary/mailto.log", "a") as f:
+        f.write(url + "\n")
+    if url.startswith("mailto:"):
+        url = url.removeprefix("mailto:")
+
+    if "?" in url:
+        to, url = url.split("?")
+        d = {}
+        for part in url.split("&"):
+            k, v = part.split("=")
+            d[k] = v
+    else:
+        to, d = url, {}
+
+    return to, d.get("subject"), d.get("body")
+
+def make_url(to, subject=None, body=None):
+    url = ROUNDCUBE_BASE_URL + "?"
+    params = {
+        "_task":"mail",
+        "_action":"compose",
+        "_to": to,
+        "_subject": subject,
+        "_message": body,
+    }
+    return url + "&".join(f"{k}={v}".format(k,v) for k, v in params.items() if v is not None)
+
+def execv(args):
+    command = args[0]
+    # Resolve to an absolute path using PATH var
+    command = check_output(["which", command]).decode("utf8")[:-1]
+    os.execv(command, args)
+
+def visit(url):
+    browser = os.environ.get("BROWSER", DEFAULT_BROWSER)
+    execv([browser, url])
+
+if __name__ == '__main__':
+    with open("/home/zachary/mailto.log", "a") as f:
+        f.write(str("HI") + "\n")
+        f.write(str(sys.argv) + "\n")
+    if sys.argv[1] == "--install":
+        install()
+    else:
+        to, subject, body = parse_mailto(sys.argv[1])
+        url = make_url(to, subject=subject, body=body)
+        visit(url)
