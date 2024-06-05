@@ -49,8 +49,6 @@ def install():
     run_without_root(["xdg-mime", "default", DESKTOP_NAME, "x-scheme-handler/mailto"])
 
 def parse_mailto(url):
-    with open("/home/zachary/mailto.log", "a") as f:
-        f.write(url + "\n")
     if url.startswith("mailto:"):
         url = url.removeprefix("mailto:")
 
@@ -87,9 +85,6 @@ def visit(url):
     execv([browser, url])
 
 if __name__ == '__main__':
-    with open("/home/zachary/mailto.log", "a") as f:
-        f.write(str("HI") + "\n")
-        f.write(str(sys.argv) + "\n")
     if sys.argv[1] == "--install":
         install()
     else:
