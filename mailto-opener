@@ -13,10 +13,13 @@ To set this as your program to open mailto links, run:
 import pwd, grp
 import os, sys
 from subprocess import check_output, run
+from collections import defaultdict
 
-ROUNDCUBE_BASE_URL="https://webmail.za3k.com/"
+# Valid mailto keys are: to, subject, body, cc, bcc
+# The below is for my Roundcube instance
+WEBMAIL_URL="https://webmail.za3k.com/?_task=mail&_action=compose&_to={to}&_subject={subject}&_message={body}"
+
 DEFAULT_BROWSER="xdg-open"
-
 DESKTOP="""
 [Desktop Entry]
 Type=Application
@@ -62,18 +65,12 @@ def parse_mailto(url):
     else:
         to, d = url, {}
 
-    return to, d.get("subject"), d.get("body")
+    return to, d
 
-def make_url(to, subject=None, body=None):
-    url = ROUNDCUBE_BASE_URL + "?"
-    params = {
-        "_task":"mail",
-        "_action":"compose",
-        "_to": to,
-        "_subject": subject,
-        "_message": body,
-    }
-    return url + "&".join(f"{k}={v}".format(k,v) for k, v in params.items() if v is not None)
+def make_url(to, kw):
+    d = defaultdict(str, kw)
+    d["to"] = to
+    return WEBMAIL_URL.format_map(d)
 
 def visit(url):
     browser = os.environ.get("BROWSER", DEFAULT_BROWSER)
@@ -83,6 +80,6 @@ if __name__ == '__main__':
     if sys.argv[1] == "--install":
         install()
     else:
-        to, subject, body = parse_mailto(sys.argv[1])
-        url = make_url(to, subject=subject, body=body)
+        to, args = parse_mailto(sys.argv[1])
+        url = make_url(to, args)
         visit(url)
