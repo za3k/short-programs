@@ -1,2 +1,11 @@
 #!/bin/sh
-exec \date -d "1970-01-01 $1 sec UTC"
+TS="$1"
+
+case $TS in
+    ?????????????)
+        exec \date -d "1970-01-01 $((TS / 1000)) sec UTC"
+        ;;
+    ??????????)
+        exec \date -d "1970-01-01 $TS sec UTC"
+        ;;
+esac
