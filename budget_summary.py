@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import datetime, glob, os, re, sys
 
+WEEKLY_REVIEW="/home/zachary/.projects/weekly-review"
+
 DATE_FORMAT="%Y-%m-%d"
 def load_review():
     if len(sys.argv) > 1:
@@ -13,9 +15,9 @@ def load_review():
         while day_offset > 0: day_offset-= 7
         assert -6 <= day_offset <= 0
         current_date += datetime.timedelta(days=day_offset)
-        fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date)
+        fp = os.path.join(WEEKLY_REVIEW,"_posts/{}/{}-weekly-review.md".format(current_date.year, current_date))
     if not os.path.exists(fp):
-        fp = "/home/zachary/weekly-review/_posts/{}/{}-weekly-review.md".format(current_date.year, current_date.strftime(DATE_FORMAT))
+        fp = os.path.join(WEEKLY_REVIEW,"_posts/{}/{}-weekly-review.md".format(current_date.year, current_date.strftime(DATE_FORMAT)))
     with open(fp, "r") as f:
         return list(f)
 def load_budget():
