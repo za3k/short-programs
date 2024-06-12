@@ -480,6 +480,9 @@ Example:
 
     $ unix2date 1680474618
     Sun Apr  2 06:30:18 PM EDT 2023
+    
+    $ unix2date 1680474618000
+    Sun Apr  2 06:30:18 PM EDT 2023
 
 video-linter
 ---
