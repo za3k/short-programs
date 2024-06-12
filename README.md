@@ -161,6 +161,11 @@ fragile-treediff
 Usage: `fragile-treediff FOLDER1 FOLDER2`
 Returns a success or failure error code, depending on whether two folders are exactly identical.
 
+gcode-bounds
+---
+Usage: `gcode-bounds FILE.gcode`
+Returns the dimensions (in mm) of a 3d-printable gcode file.
+
 grep-percent
 ---
 Usage: `grep-percent TERM FILE`
