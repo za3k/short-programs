@@ -1,0 +1,36 @@
+#!/bin/bash
+case `hostname` in
+    juice)
+        PRINT_COMMAND=lp
+        ;;
+    *)
+        PRINT_COMMAND="ssh juice lp"
+        ;;
+esac
+#PRINT_COMMAND=echo
+
+print_one() {
+    EXT="${1#*.}"
+    EXT=`echo $EXT | tr 'A-Z' 'a-z'`
+    case $EXT in
+        pdf|"")
+            cat "$1" | $PRINT_COMMAND
+            ;;
+        jpg|jpeg|png)
+            convert "$1" pdf:- | $PRINT_COMMAND
+            ;;
+        *)
+            echo "Unknown extension '$EXT'; trying to print anyway" >&2
+            cat "$1" | $PRINT_COMMAND
+            ;;
+    esac
+}
+
+if [ $# -eq 0 ]; then
+    exec $PRINT_COMMAND
+else
+    while [ $# -gt 0 ]; do
+        print_one "$1"
+        shift
+    done
+fi

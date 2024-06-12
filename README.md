@@ -353,10 +353,18 @@ pompompom
 ---
 Do pomodoros interactively.
 
-Requires 'playsound' from pip
+Optionally requires 'playsound' from pip
 
 ![pompompom screenshot](pompompom.png)
 ![pompompom screenshot](pompompom2.png)
+
+print
+---
+Usage: `print FILE`
+
+Only useful for me. Prints the file on my printer.
+
+My version of 'lp' doesn't like image files, etc. This converts everything to the correct format using imagemagick.
 
 print.index
 ---
