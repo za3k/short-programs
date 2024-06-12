@@ -68,10 +68,6 @@ countdown
 ---
 See 'timer'
 
-create-github-repo
----
-Usage: `create-github-repo NAME DESCRIPTION`
-
 cryptogram.py
 ---
 Usage: `cryptogram.py "MIH WAIHXS TFBFL OF WHLRLTWFS QAFY WIKFIYF CLFECW MIH QTCA LFWRFJC, MIH WAIHXS FVRFJC TC."`
@@ -179,17 +175,6 @@ google-calendar
 ---
 Prints out a physical text-only calendar from Google Calendar
 
-google-count
----
-Show the number of results on Google for xkcd-style big data analysis.
-
-Requirements: `pip install beautifulsoup4`
-
-Usage:
-
-    google-count.py "Hello world"
-    264000000
-
 habit-tracker
 ---
 ![habit-tracker screenshot](habit-tracker.png)
@@ -203,14 +188,6 @@ Usage: `habit-tracker`
 hours
 ---
 Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
-
-internet-timelimit
----
-(Arch, netcfg) Connects to the internet for short period of time, then automatically disconnects. Usage: `internet.sh MINUTES REASON`
-
-install-yaourt
----
-Installs 'yaourt' on arch linux
 
 internet_up?
 ---
@@ -233,11 +210,6 @@ Usage:
 Example:
 
     echo "Backed up the computer." | log backups
-
-
-lwjgl-fix
----
-On Arch Linux, fix lwjgl.jar in minecraft
 
 mailto-opener
 ---
@@ -318,10 +290,6 @@ onerng
 ---
 Outputs the (raw) random bytes from an OneRNG hardware device
 
-owns?
----
-Checks which Arch Linux package owns a command
-
 passgen
 ---
 Returns a random password or passphrase
@@ -385,14 +353,6 @@ Usage / examples:
         sha256 -c checksums
         prng verify files COUNT [SIZE]
     prng checksums files COUNT [SIZE] > checksums
-
-pull-requester
----
-(Obsoleted by git-hub command) Create a new pull request on github for the current github project
-
-pushgh
----
-Push to an empty Github repo. Usage: `pushgh [USER] REPOSITORY`
 
 quiz
 ---
