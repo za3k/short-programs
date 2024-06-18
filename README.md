@@ -109,7 +109,6 @@ Example:
 
     SYNC_DIR="/media/sd" BOOKS_DIR="/home/zachary/books" ebooks-sync
 
-
 etherpad
 ---
 Create, update, fetch, or delete text files on etherpad.za3k.com (or any other etherpad-lite instance).
@@ -289,6 +288,29 @@ Usage:
 onerng
 ---
 Outputs the (raw) random bytes from an OneRNG hardware device
+
+open-{directory,text-file}
+---
+I don't use a lot of graphical programs, but xdg-open (the Linux "open this file" system) tries to open stuff anyway. This provides sane defaults for those of us that like the command line.
+
+- open-directory opens a directory in a new xterm window (in the default shell)
+- edit-text-file opens a text file in your default terminal text editor (as specified in $EDITOR, or defaulting to something sane)
+
+Install (as default program):
+
+    # Do not run these as root, or they will only set the default program for root
+    make open-directory-install
+    make open-text-file-install
+
+Usage:
+
+    open-directory /usr/bin
+    open-text-file README
+
+For amusement, my previous system defaults:
+
+- text files started WINE, then got opened in notepad
+- directories open in the KATE text editor
 
 passgen
 ---
