@@ -1,0 +1,10 @@
+#!/bin/sh
+if [ -z "${EDITOR}" ]; then
+    for option in nano vim emacs vi less more; do
+	  if [ -e /bin/$option ]; then
+	    EDITOR=$option
+		break
+      fi
+    done
+fi
+exec xterm -e $EDITOR "$@"

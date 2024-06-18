@@ -1,0 +1,18 @@
+# Install:
+#     sudo cp open-directory /bin/open/directory
+#     sudo cp open-directory.desktop /usr/local/share/applications/open-directory.desktop 
+#     xdg-mime default open-directory.desktop inode/directory
+#     xdg-mime default open-directory.desktop application/x-directory
+#     sudo update-desktop-database
+# Test current default:
+#     xdg-mime query default inode/directory
+# Verify this file:
+#     desktop-file-validate open-directory.desktop 
+
+[Desktop Entry]
+Type=Application
+Name=open folder in terminal
+
+Exec=open-directory %f
+# Uncomment and modify if open-directory is NOT in the system path
+# Exec=xterm -e /home/zachary/.projects/short-programs/open-directory %f

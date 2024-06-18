@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=edit text file in terminal
+Exec=open-text-file %f
+# Uncomment and modify if open-file is NOT in the system path
+# Exec=/home/zachary/.projects/short-programs/open-text-file %f
