@@ -12,6 +12,6 @@ open-text-file-install:
 	sudo cp open-text-file.desktop /usr/local/share/applications/open-text-file.desktop 
 	xdg-mime default open-text-file.desktop text/plain
 	sudo xdg-mime default open-text-file.desktop text/plain
-	update-desktop-database
+	sudo update-desktop-database
 install:
 	find -executable -type f | sudo xargs cp -t ${INSTALL}
