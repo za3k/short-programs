@@ -39,8 +39,6 @@ def play_samples(s):
     else:
         command = ['aplay', '-r', '48000', '-f', 's16']
 
-    print(command)
-    
     p = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
     bytes_ = struct.pack(f"<{str(len(s))}h", *[int(32000 * x * vol) for x in s])
     p.stdin.write(bytes_)
