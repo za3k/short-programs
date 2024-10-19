@@ -42,6 +42,17 @@ budget_summary
 ---
 Helper for za3k only. Summarizes budget categories typed in from my logbook
 
+blinds
+---
+(za3k only) Control my home blinds.
+
+Example:
+
+    blinds open
+    blinds close
+    blinds privacy
+    blinds 0 50 50
+
 caesar
 ---
 Does or reverses a classic caesar cipher, in which each letter is shifted a set number of letters through the alphabet.

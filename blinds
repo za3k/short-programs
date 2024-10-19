@@ -1,0 +1,62 @@
+#!/usr/bin/python3
+import subprocess
+import sys
+
+ZIGBEE_BROKER = "192.168.1.17"
+BLINDS = { # Range of open/closed. 100 is fully open.
+    1: (28, 95),
+    2: (25, 93),
+    3: (25, 93),
+}
+
+USAGE = """
+Usage: blinds.py WIN123
+       blinds.py WIN1 WIN23
+       blinds.py WIN1 WIN2 WIN3
+
+Raises window blinds to the level given.
+
+Levels can be "open", "closed", or 0-100% (100% = open).
+
+""".strip()
+
+def change_scale(x, in_range, out_range):
+    percent = (x - in_range[0]) / (in_range[1]-in_range[0])
+    return out_range[0] + percent*(out_range[1]-out_range[0])
+
+def parse(blind_num, arg):
+    """Return a whole-number percent 0 (closed) to 100 (open)"""
+    min_, max_ = BLINDS.get(blind_num, (0, 100))
+    if arg in ["close", "closed"]:
+        return min_
+    elif arg == "open":
+        return 100
+    arg = change_scale(float(arg), (0.0, 100.0), (min_, max_))
+    return int(arg)
+
+def control(blind_num, arg):
+    percent = parse(blind_num, arg)
+    payload = '{{"position": {} }}'.format(percent)
+    topic = "zigbee2mqtt/Blinds/{}/Blind/set".format(blind_num)
+    command = ["mosquitto_pub", "-h", ZIGBEE_BROKER, "-t", topic, "-m", payload]
+    return subprocess.Popen(command)
+
+args = sys.argv[1:]
+if len(args) == 1 and args[0] == "privacy":
+    levels = ["closed", "open", "open"]
+elif len(args) == 1:
+    levels = [args[0], args[0], args[0]]
+elif len(args) == 2:
+    levels = [args[0], args[1], args[1]]
+elif len(args) == 3:
+    levels = [args[0], args[1], args[2]]
+else:
+    print(USAGE)
+    sys.exit(1)
+
+p1 = control(1, levels[0])
+p2 = control(2, levels[1])
+p3 = control(3, levels[2])
+p1.wait()
+p2.wait()
+p3.wait()
