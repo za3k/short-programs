@@ -42,7 +42,7 @@ budget_summary
 ---
 Helper for za3k only. Summarizes budget categories typed in from my logbook
 
-blinds
+blinds, mqtt2mqtt
 ---
 (za3k only) Control my home blinds.
 
