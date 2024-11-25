@@ -1,0 +1,12 @@
+[Unit]
+Description=Beeps when the power cord is disconnected/connected, or the power is low.
+
+[Service]
+Type=simple
+ExecStart=/home/zachary/.projects/short-programs/power-beeps
+User=zachary
+Group=users
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+
+[Install]
+WantedBy=multi-user.target

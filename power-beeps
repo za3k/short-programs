@@ -1,0 +1,126 @@
+#!/bin/python3
+from collections import namedtuple
+from contextlib import contextmanager
+import math
+import re
+import os
+import struct
+import subprocess
+from time import sleep
+
+TONE = {
+    0: 500,
+    1: 600,
+    2: 700,
+}
+rate = 48000 # Hz
+vol = 1 # As a percentage
+
+Status = namedtuple("Status", ["battery", "status", "percent"])
+class Monitor():
+    def __init__(self):
+        self.state = None
+
+    def play(self, s):
+        if os.path.exists("/bin/paplay"):
+            command = ['paplay', '--raw', "--channels", "1", "--rate", str(rate), "--format"        , "s16le"]
+        else:
+            command = ['aplay', '-r', str(rate), '-f', 's16']
+
+        p = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        bytes_ = struct.pack(f"<{str(len(s))}h", *[int(32000 * x * vol) for x in s])
+        p.stdin.write(bytes_)
+        p.stdin.close()
+        p.wait()
+    
+    @staticmethod
+    def silence(sec):
+        samples = int(sec * rate)
+        return [0]*samples
+
+    @staticmethod
+    def tone(freq, sec):
+        #ms = randExp(200,600)
+        #freq = randExp(220, 900)
+        samples = int(sec * rate)
+        r = [math.sin(t*freq/rate*math.pi) for t in range(samples)]
+        for x in range(100):
+            r[x] *= (x/100)
+            r[-x] *= (x/100)
+        return r
+
+    def acpi(self):
+        # Battery 0: Not charging, 0%
+        # Battery 1: Not charging, 99%
+        # Battery 1: Discharging, 99%, 03:51:12 remaining
+        # Battery 1: Discharging, 99%, discharging at zero rate - will never fully discharge.
+        # Battery 1: Charging, 91%, charging at zero rate - will never fully charge.
+        # Battery 1: Charging, 91%, 00:06:17 until charged
+
+        pattern = "Battery ([0-9]): (.*), ([0-9]+)%(?:, .*)?"
+        out = subprocess.check_output("acpi").decode('utf8').rstrip().split("\n")
+        s = []
+        for line in out:
+            if m := re.match(pattern, line):
+                battery = int(m.group(1))
+                status = m.group(2)
+                percent = int(m.group(3))
+                s.append(Status(battery, status, percent))
+            else:
+                raise Exception(f"re.match({repr(pattern)}, {repr(line)})")
+                assert re.match(pattern, line)
+        return s
+
+    @contextmanager
+    def unmuted(self):
+        isPulse = os.path.exists("/bin/paplay")
+        if isPulse:
+            isMuted = {"[off]": False, "[on]": True}[subprocess.check_output(["amixer", "get", "Master"]).decode("utf8").rstrip().split()[-1]]
+            mute = unmute = lambda: subprocess.run(["amixer", "-D", "pulse", "sset", "Master", "toggle"])
+        else: # Alsa
+            isMuted = {"[off]": False, "[on]": True}[subprocess.check_output(["amixer", "get", "Master"]).decode("utf8").rstrip().split()[-1]]
+            mute = unmute = lambda: subprocess.run(["amixer", "set", "Master", "toggle"])
+
+        if not isMuted: unmute()
+        try:
+            yield
+        finally:
+            if not isMuted: mute()
+
+    def beep(self, *tones):
+        #print("Beeps", tones)
+        samples = []
+        for i, tone in enumerate(tones):
+            if i != 0:
+                samples.extend(self.silence(.1))
+            samples.extend(self.tone(TONE[tone], .2))
+        with self.unmuted():
+            self.play(samples)
+
+    def change_power(self, old, new):
+        oldAC = not any(batt.status == "Discharging" for batt in old)
+        newAC = not any(batt.status == "Discharging" for batt in new)
+        if not oldAC and newAC:
+            self.beep(0, 1) # Connected to power
+        if oldAC and not newAC:
+            self.beep(1, 0) # Disconnected from power
+
+        if not newAC and all(batt.percent <= 10 for batt in new) and any(batt.percent > 10 for batt in old):
+            self.beep(2, 2) # Warning! Power low!
+        if not newAC and all(batt.percent <= 5 for batt in new) and any(batt.percent > 5 for batt in old):
+            self.beep(2, 2, 2) # Warning! Power critically low!
+
+    def check_power(self):
+        old_state, self.state = self.state, self.acpi()
+        if old_state is not None:
+            self.change_power(old_state, self.state)
+        
+
+def every(time, action):
+    while True:
+        sleep(time)
+        action()
+
+if __name__ == "__main__":
+    monitor = Monitor()
+    every(1, monitor.check_power)
