@@ -1,14 +1,15 @@
 #!/bin/python3
 """
-Open a mailto: link
+Open a "mailto:" link
 
 Takes one argument of the form
     mailto:me@mail.com?subject=mysubject&body=mybody
 Opens in a browser the URL
     https://webmail.za3k.com/?_task=mail&_action=compose&_to=me@mail.com&_subject=mysubject&_message=mybody
 
-To set this as your program to open mailto links, run:
+To set this as your program to open mailto links, first run:
     sudo mailto-opener --install
+And then fully close any browser you want it to work in (really).
 """
 import pwd, grp
 import os, sys
@@ -36,6 +37,9 @@ def run_without_root(args):
             "-g", "#"+os.environ.get("SUDO_GID")]+
         args
     )
+
+def usage():
+    print(__doc__.strip())
 
 def install():
     binary = os.path.abspath(__file__)
@@ -77,7 +81,9 @@ def visit(url):
     os.execvp(browser, [browser, url])
 
 if __name__ == '__main__':
-    if sys.argv[1] == "--install":
+    if len(sys.argv) == 1 or sys.argv[1] in ("-h", "--help", "-help"):
+        usage()
+    elif sys.argv[1] == "--install":
         install()
     else:
         to, args = parse_mailto(sys.argv[1])
