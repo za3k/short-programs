@@ -42,6 +42,17 @@ budget_summary
 ---
 Helper for za3k only. Summarizes budget categories typed in from my logbook
 
+blinds, mqtt2mqtt
+---
+(za3k only) Control my home blinds.
+
+Example:
+
+    blinds open
+    blinds close
+    blinds privacy
+    blinds 0 50 50
+
 caesar
 ---
 Does or reverses a classic caesar cipher, in which each letter is shifted a set number of letters through the alphabet.
@@ -347,6 +358,16 @@ Optionally requires 'playsound' from pip
 
 ![pompompom screenshot](pompompom.png)
 ![pompompom screenshot](pompompom2.png)
+
+power-beeps
+---
+Makes beep sounds to let you know your power cord is unplugged, or your battery is running low. Designed to be run as a daemon.
+
+The main feature is a robust ability to deal with muting. It will happily play sound even if the terminal bell and X bell are off, and sound is muted.
+
+My alarm is set to 10% and 5%, and deals with having two batteries (one of which doesn't always charge).
+
+To use, install power-beeps.service to to /etc/systemd/system/power-beeps.service, and change the path to power-beeps accordingly.
 
 print
 ---

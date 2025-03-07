@@ -1,2 +1,2 @@
 #!/bin/sh
-speak -v english-mb-en1 "$@"
+speak -v english-mb-en1 "$@" 2>/dev/null || speak "$@"
