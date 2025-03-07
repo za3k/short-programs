@@ -24,6 +24,8 @@ if os.path.isdir(POMS_SAVE):
     POMS_LOG = os.path.join(POMS_SAVE, "{}.done.txt".format(today))
     POMS_SAVE = os.path.join(POMS_SAVE, "{}.txt".format(today))
 
+INSTALL_PLAYSOUND = "Please run: yay -S python-playsound gst-plugins-good\n"
+
 inst = """
 ENTER to do a pom               DEL to delete a pom
     N to add a new pom            C to clear all poms
@@ -99,8 +101,13 @@ def bell():
 
 try:
     from playsound import playsound
+    import subprocess
+    if subprocess.run(["pacman", "-Q", "gst-plugins-good"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 1: # 127 = this isn't arch linux
+        raise ModuleNotFoundError()
+    playsound_exists = True
 except ModuleNotFoundError:
     playsound = lambda *a, **v: 1
+    playsound_exists = False
 
 def move (x, y):
     stdout.write("\033[%d;%dH" % (y,x))
@@ -283,3 +290,5 @@ if __name__ == '__main__':
             log_pomodoro_done(kp, pom)
         save(poms)
     stdout.write(RESTORE_TERM)
+    if not playsound_exists:
+        stdout.write(INSTALL_PLAYSOUND)
