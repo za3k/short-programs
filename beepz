@@ -47,7 +47,8 @@ def play_samples(s):
 
 def say(text):
     if not os.path.exists("/bin/speak"): return
-    subprocess.check_output(['speak', '-v', 'english-mb-en1', text])
+    if subprocess.call(['speak', '-v', 'english-mb-en1', text], stderr=subprocess.DEVNULL) != 0:
+        subprocess.check_output(['speak', text])
 
 if __name__ == "__main__":
     args = [x for x in sys.argv[1:] if x.startswith("-")]
