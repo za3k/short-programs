@@ -437,6 +437,17 @@ Output:
     1d6+4 = 6
     2d10+0 = 19
 
+run-bytes
+---
+Given a sequence of x86-64 machine code bytes on stdin, execute them.
+
+Example usage: 
+    echo "\xB8\x3C\x00\x00\x00\xBF\x2A\x00\x00\x00\x0F\x05" 
+        | ./run_bytes.py
+    echo $? # Echoes 42 (aka 0x2A)
+
+Note: limited to x86-64 and 10KB of machine code
+
 rtmux
 ---
 
