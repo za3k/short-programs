@@ -564,7 +564,7 @@ torrent\_size
 ---
 Display the size of a torrent file
 
-unix2date
+unix2date = ts2date
 ---
 Example:
 
