@@ -1,0 +1,475 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+from collections import defaultdict
+from contextlib import contextmanager
+from dataclasses import dataclass
+from datetime import datetime
+import os
+from os import getenv
+from pathlib import Path
+import pickle
+import re
+from subprocess import call, run
+from sys import stdin
+import tempfile
+import termios, tty
+import textwrap
+from typing import Optional
+
+# Config
+DIR = Path("/var/ir")
+BOOKS = DIR / "books"
+SUMMARIES = DIR / "summaries"
+EDITOR = getenv("EDITOR", "vim")
+DEBUG = False
+
+# Documentation for the user (git commit / interactive rebase style)
+
+EXPLAIN_INGEST = """
+Title: ?
+;;;Replace this by the entire book contents;;;
+""".lstrip()
+
+EXPLAIN_SPLIT = """
+; You are being asked to split a long block of text.
+; 
+; Split the text below using the | character.
+; Make sure NOT TO ADD OR DELETE ANY OTHER CHARACTERS, including whitespace.
+; 
+; If you decide this entire section is too hard for you to tackle, exit without
+; saving to return to the menu, and press D to delay it.
+; 
+; Book:
+;     (Recommended) Split out the next chapter using a single |
+;     Rationale: If you decide you're not interested in the book, or want to
+;                delay until you read background material, it's better to delay
+;                it as a whole rather than on a chapter-by-chapter basis.
+; 
+; Chapter / Large Section:
+;     (Recommended) Split the next subsection using one |.
+; 
+; Small Section:
+;     (Recommended) Split the next 5 paragraphs using up to 5 |'s in one step.
+; 
+; Paragraph:
+;     (Recommended) Exit and press F, to finalize rather than splitting.
+; 
+;     If you split it into sentences (to generate clozes), do this in one step.
+; 
+;;;;;; Original text follows ;;;;;;
+""".lstrip().replace("|","￨")
+
+EXPLAIN_LEAF = """
+; You are being asked to summarize a short block of text.
+; 
+; If you decide this is too hard for you to tackle, exit without
+; saving to return to the menu, and press D to delay it.
+; 
+; (COMMON CONVENTIONS)
+; 
+; * New vocabulary. English, technical, foreign language.
+; VOCAB     Cacophony: n. A harsh, discordant mixture of sounds
+; VOCAB     Hylomorphism: The combination of unfold and fold
+; GERMAN    Zucker: Sugar
+; 
+; * Potential anki flashcards, either front/back or cloze format
+; FLASH     PV=nRT / Ideal gas law
+; FLASH     s.remove(x): remove x from set s; raises [[KeyError]] if not present
+; 
+; * Add exercises from the book, or exercises you come up with yourself.
+; EXERCISE  Write a Go function which chains together two channels.
+; EXERCISE  What is the integral of the function `f(x) = sin(2x)` ?
+; INBOX     Read the original Unix V3 syntax for pipes
+; 
+; * Normal summary lines simply have no prefix.
+; 
+; Summarize the below sentence/paragraph. Any ;commented lines like these
+; will be deleted automatically.
+;;;;;; Original text follows ;;;;;;
+""".lstrip()
+
+EXPLAIN_SYNTHESIS = """
+; You are being asked to summarize a block of text.
+; 
+;;;;; Summaries follow ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+{summaries}
+; 
+;;;;; Original text follows ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+{text}
+""".lstrip()
+# Used between summary sections in SUMMARIES above
+SYNTHESIS_SPACER = "\n;\n" + ";"*80 + "\n\n" 
+
+now = datetime.now
+def fail():
+    raise Exception("Not yet implemented")
+
+def getch():
+    old_settings = termios.tcgetattr(0)
+    try:
+        tty.setcbreak(0)
+        return stdin.read(1)
+    finally:
+        termios.tcsetattr(0, termios.TCSADRAIN, old_settings)
+
+def prompt(prompt, options):
+    with color("35;40"):
+        print(f"{prompt}? ", end="", flush=True)
+    with color("34;40"):
+        print(f"({"/".join(options)}) ", end="", flush=True)
+        while True:
+            key = getch()
+            if key in options:
+                print(key)
+                return key
+    
+@contextmanager
+def color(c="32;40"):
+    print(f"\x1b[{c}m",end="")
+    yield
+    print("\x1b[0m",end="")
+
+def editor(prompt):
+    with tempfile.NamedTemporaryFile("w+") as f:
+        f.write(prompt)
+        f.flush()
+        call([EDITOR, f.name])
+        f.seek(0)
+        content = f.read()
+        # Text editors may automatically add a missing newline
+        if prompt and content and prompt[-1] != "\n" == content[-1]:
+            content = content[:-1]
+        if content == prompt:
+            return None
+        else:
+            return content
+
+def commented(text):
+    return re.sub("(?m)^", "; ", text)
+
+def strip_comments(text): 
+    return re.sub(r"(?m)^;.*\n", "", text)
+
+class Task():
+    # There are conceptually four states
+    #   division: being split up into smaller parts
+    #   (leaf): being transformed/summarized on its own, as the smallest part
+    #           this is not stored in the DB. instead, users do the process
+    #              division -> leaf -> summary
+    #           in a single step
+    #   summary: a completed summary (of a paragraph, chapter, book, etc)
+    #            summaries may include 
+    #              - summary lines
+    #              - vocab learned
+    #              - exercises
+    #              - anki cards (usually clozes)
+    #   synthesis: ready to summarize, once smaller parts are summarized
+    #              (the summary of a chapter is not simply the summary of 
+    #              all the paragraphs, but uses them)
+
+    def __init__(self, state, book, range, ready=True, summary=None, last_touched=None):
+        assert state in ("division", "summary", "synthesis")
+        self.state        : str            = state
+        # a path
+        self.book         : str            = book
+        # character range inside [book]
+        self.range        : tuple[int,int] = range
+        # On task creation, summary can be None, True, or a string
+        # By the time it's added to the database, it can only be None or True
+        self.summary      : bool           = summary
+        # DB is FIFO
+        self.last_touched : datetime       = last_touched or now()
+        # DB is 2 FIFOs i lied
+        self.ready        : bool           = ready
+
+    def within(self, t):
+        return t.book == self.book and t.range != self.range and t.range[0] <= self.range[0] <= self.range[1] <= t.range[1]
+
+    def subparts(self, db) -> list[Task]: # expensive
+        return (t for t in db if t.within(self))
+
+    def superparts(self, db) -> list[Task]: # expensive
+        return (t for t in db if self.within(t))
+
+    def recalc(self, db) -> bool: # expensive
+        assert self.state == "synthesis"
+
+        ready = all(part.state == "summary" for part in self.subparts(db))
+        return Task(state=self.state, book=self.book, range=self.range, ready=ready, summary=self.summary, last_touched=self.last_touched)
+
+    def title(self) -> str:
+        with open(BOOKS / self.book, "r", encoding="utf8") as f:
+            first_line = f.readline()
+            title = "?"
+            if first_line.startswith("Title: "):
+                title = first_line.removeprefix("Title: ").strip()
+            if title == "?":
+                return self.book
+            return title
+
+    def text(self) -> str:
+        with open(BOOKS / self.book, "r", encoding="utf8") as f:
+            first_line = f.readline() # Skip the title line
+            start, end = self.range
+            f.read(start) # There is no .seek(chars) even for text-mode
+            return f.read(end-start)
+
+    def summary_path(self):
+        return SUMMARIES / f"{self.book.removesuffix('.txt')}.{self.range[0]}-{self.range[1]}.txt"
+
+    def get_summary(self):
+        with open(self.summary_path(), "r", encoding="utf8") as f:
+            return f.read()
+
+    def __hash__(self):
+        return hash((self.state, self.book, self.range, self.summary, self.last_touched, self.ready))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __repr__(self) -> str:
+        return f"Task(state={self.state}, book={self.book}, range={self.range}, ready={self.ready}, summary={self.summary}, last_touched={self.last_touched})"
+
+    def __str__(self): return repr(self)
+
+    def update(self, last_updated):
+        self.last_updated = last_updated
+        return self
+        
+class TaskDB():
+    def __init__(self, path):
+        self.path = path
+        if Path(self.path).exists():
+            with open(self.path, "rb") as f:
+                self.d = pickle.load(f).d
+            self.migration()
+        else:
+            self.d = set()
+
+    def migration(self): 
+        """Put any temporary code to change DB formats here"""
+        keyed = defaultdict(list)
+        for t in self.d:
+            keyed[(t.book, t.range)].append(t)
+        for v in keyed.values():
+            for t in v[1:]: # Likely empty
+                assert False
+                self.remove(t)
+        for v in self.d:
+            if v.state == "summary":
+                for t in v.subparts(self):
+                    assert False
+                    self.remove(t)
+
+    def __iter__(self):
+        return iter(self.d)
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        with open(self.path, "wb") as f:
+            pickle.dump(self, f)
+
+    def propagate(self, task):
+        for t in task.superparts(self):
+            self.replace(t, t.recalc(self))
+
+    def add(self, t):
+        if isinstance(t.summary, str):
+            with open(t.summary_path(), "w") as f:
+                if DEBUG: print("Adding file", t.summary_path())
+                f.write(t.summary)
+                t.summary = True
+        self.d.add(t)
+
+    def remove(self, t):
+        if t.summary:
+            os.remove(t.summary_path())
+        self.d.remove(t)
+        self.propagate(t)
+
+    def replace(self, t1, t2):
+        assert t1.book == t2.book
+        assert t1.range == t2.range
+        self.remove(t1)
+        self.propagate(t2)
+        self.add(t2)
+
+class IncrementalReader():
+    def free_book(self):
+        for i in range(10000):
+            book = f"{i:04d}.txt"
+            if not (BOOKS / book).exists():
+                return book
+
+    def defer(self, task):
+        self.tasks.replace(task, task.update(
+            last_updated=now()
+        ))
+    skip = defer # Someday these may do different things
+
+    def quit(self):
+        exit(0) # still calls finally, which saves the database -- in theory
+
+    def split(self, task, new_ranges):
+        for r in new_ranges:
+            self.tasks.add(Task(
+                state="division",
+                book=task.book,
+                range=r,
+            ))
+
+        self.tasks.replace(task, Task(
+            state="synthesis",
+            book=task.book,
+            range=task.range,
+            ready=(len(new_ranges)==0),
+        ))
+
+    def summarize_leaf(self, task, summary):
+        self.tasks.replace(task, Task(
+            state="summary",
+            book=task.book,
+            range=task.range,
+            ready=False,
+            summary=summary,
+        ))
+
+    def trash(self, task):
+        self.tasks.remove(task)
+
+    def synthesize(self, task, subtasks, summary):
+        for t in subtasks:
+            self.tasks.remove(t)
+
+        self.tasks.replace(task, Task(
+            state="summary",
+            book=task.book,
+            range=task.range,
+            ready=False,
+            summary=summary,
+        ))
+
+    def display_preview(self, task):
+        text = task.text()
+
+        wrapped = textwrap.wrap(text, width=80, tabsize=4)
+        print()
+        print(f" {task.title()[:50]} ".center(80,"-"))
+        if len(wrapped) > 13:
+            wrapped = wrapped[:5] + ["",f"... {len(wrapped)-10} lines ...".center(80," "),""] + wrapped[-5:]
+        for l in wrapped: print(l)
+        print(f" {task.state}, {len(text)} chars ".center(80,"-"))
+        print()
+
+    # do_X: the user is doing X
+
+    def do_split(self, task):
+        text = task.text() 
+        out = editor(EXPLAIN_SPLIT + text.replace("|", "￨"))
+        if not out: return
+
+        if not out.startswith(EXPLAIN_SPLIT):
+            return prompt("Please don't edit the intro. Restarting, sorry.", "y")
+        out = out.removeprefix(EXPLAIN_SPLIT)
+
+        if out.count("|") + len(text) != len(out):
+            return prompt("Characters other than | inserted.\n"
+                   "We have no idea what to do. Restarting, sorry.", "y")
+
+        ranges = [ # in chars, not bytes
+            (task.range[0]+m.start()-i, task.range[0]+m.end()-i) for (i, m) in 
+            enumerate(re.finditer(r"(?s)(\A|(?<=\|))[^|]*(?:\Z|(?=\|))", out))
+            if m.end() != m.start()
+        ]
+
+        self.split(task, ranges)
+
+    def do_leaf_actions(self, task):
+        out = editor(EXPLAIN_LEAF + commented(task.text()))
+        if not out: return
+        summary = strip_comments(out)
+        self.summarize_leaf(task, summary)
+
+    def do_ingest(self):
+        out = editor(EXPLAIN_INGEST)
+        if not out: return
+        book = self.free_book()
+        with open(BOOKS / book, "w") as f:
+            f.write(out)
+        t = Task(book=book, range=(0,len(out)), last_touched=now(), state="division")
+        self.tasks.add(t)
+
+    def do_summarize(self, task, subparts):
+        subparts = list(sorted(subparts, key=lambda x: x.range))
+        summaries = SYNTHESIS_SPACER.join(p.get_summary() for p in subparts)
+        prompt = EXPLAIN_SYNTHESIS.format(
+            summaries=summaries,
+            text=commented(task.text())
+        )
+
+        out = editor(prompt)
+        if not out: return
+        summary = strip_comments(out)
+
+        self.synthesize(task, subparts, summary)
+
+    def do_division(self, task):
+        self.display_preview(task)
+        match prompt("You are being asked to split a long block of text.\nsplit finalize trash bleh defer quit", "sftbdq"):
+            case "s":
+                self.do_split(task)
+            case "f":
+                self.do_leaf_actions(task)
+            case "t":
+                self.trash(task)
+            case "b":
+                self.skip(task)
+            case "d":
+                self.defer(task)
+            case "q":
+                self.quit()
+        
+    def do_synthesis(self, task):
+        subparts = task.subparts(self.tasks)
+        self.display_preview(task)
+        match prompt("You are being asked to summarize a long block of text using small summaries.\nsummarize bleh quit", "sbq"):
+            case "s":
+                self.do_summarize(task, subparts)
+            case "b":
+                self.skip(task)
+            case "q":
+                self.quit()
+
+    def schedule_something(self):
+        """ The next task the user should do """
+        ts = (t for t in self.tasks if t.ready) # Skips unready synthesis, summaries
+        k = lambda t: t.last_touched
+        return min(ts, default=None, key=k)
+
+    def main_loop(self, n=1000000):
+        assert DIR.is_dir() and BOOKS.is_dir() and SUMMARIES.is_dir(), f"Create {DIR} and {BOOKS} and {SUMMARIES}, or edit config to change directories"
+        try:
+            with TaskDB(DIR / "ir.db") as self.tasks:
+                if DEBUG and "y" == prompt("Print the entire database", "yn"):
+                    with color():
+                        for t in self.tasks:
+                            print(repr(t))
+                while "y" == prompt("New textbooks to ingest", "yn"):
+                    self.do_ingest()
+                print()
+                for _ in range(n):
+                    task = self.schedule_something()
+                    if not task:
+                        print("All tasks complete.")
+                        return
+                    match task.state:
+                        case "division":
+                            self.do_division(task)
+                        case "synthesis":
+                            self.do_synthesis(task)
+        except KeyboardInterrupt:
+            print() # Generally, you were on a prompt
+
+
+if __name__ == "__main__":
+    IncrementalReader().main_loop()
