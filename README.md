@@ -220,12 +220,22 @@ The final output could be
 - TO DO items
 - etc, it's pretty freeform
 
+![](ir1.png)
+![](ir2.png)
+
 In between, 'ir' manages the process for you, especially of reading a variety of documents in non-linear order, for a bit a day.
 - It has you gradually break down the book into manageable chunks. Book -> chapter -> section -> paragraph
 - When you reach the paragraph level, you do some actual work like summarizing, writing vocab words, etc.
 - You combine smaller summaries together. For example, you use all the paragraph summaries to make a section summary. Of course, you can also go look at the section too, in case there's big-picture stuff the small summaries are missing.
+- You skip parts you don't care about ("how to integrate with Windows 1998")
+- You delay parts you don't want to work on, or don't yet have the background material for ("advanced applications")
 
-All of this is happening in parallel, and you can delay things you don't feel like working on, or don't have the background material for.
+Note that 'ir' only supports reading **text**, and cannot handle math formulae, pictures, tables, etc.
+
+Default locations:
+- Summaries are placed in /var/ir/summaries (including partial summaries)
+- Original books are copied to /var/ir/books (as text)
+- The database is stored at /var/ir/ir.db
 
 Usage: `ir`
 
