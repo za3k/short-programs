@@ -212,16 +212,15 @@ Incremental reading is a concept pioneered by the commercial, windows-only [Supe
 It's a system that ingests several documents (ex. textbooks, unix source code) which you want to read.
 
 The final output could be
-    - a 2-page summary of the parts you care about from a 200-page book
-    - a list of vocab you learned
-    - flashcards to study with
-    - problems to do (either from the book or practice problems you think of yourself)
-    - a cheatsheet
-    - TO DO items
-    - etc, it's pretty freeform
+- a 2-page summary of the parts you care about from a 200-page book
+- a list of vocab you learned
+- flashcards to study with
+- problems to do (either from the book or practice problems you think of yourself)
+- a cheatsheet
+- TO DO items
+- etc, it's pretty freeform
 
 In between, 'ir' manages the process for you, especially of reading a variety of documents in non-linear order, for a bit a day.
-
 - It has you gradually break down the book into manageable chunks. Book -> chapter -> section -> paragraph
 - When you reach the paragraph level, you do some actual work like summarizing, writing vocab words, etc.
 - You combine smaller summaries together. For example, you use all the paragraph summaries to make a section summary. Of course, you can also go look at the section too, in case there's big-picture stuff the small summaries are missing.
