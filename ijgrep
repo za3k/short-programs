@@ -5,7 +5,8 @@ import glob
 import os
 
 def default_files():
-    return list(sorted(glob.glob(os.path.expanduser("~/documents/intentionjournal*.txt"))))
+    search_path = os.getenv("IJGREP_DIR", "~/documents/intentionjournal*.txt")
+    return list(sorted(glob.glob(os.path.expanduser(search_path))))
 
 def get_level(s):
     PREFIXES = ["\t", "    "]
@@ -23,8 +24,9 @@ def lines(file):
     ancestry = []
     last_level = 0
     for lineno, line in enumerate(file):
-        if line.strip() != "": # Empty lines maintain indentation
-            level = get_level(line)
+        level = get_level(line)
+        if line.strip() == "": # Empty lines maintain indentation
+            level = last_level
 
         # If we indented more than one level at once, add dummy ancestors for the missing levels
         for _ in range(level - last_level - 1):
