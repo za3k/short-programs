@@ -199,6 +199,12 @@ hours
 ---
 Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
 
+ijgrep
+---
+Search for a phrase in a set of indented TODO files.
+
+Usage: `ijgrep PHRASE FILE1 [FILE2...]`
+
 internet_up?
 ---
 Maintains a file at /var/tmp/internet_up reading "up" or "down". Run as a daemon. Useful for status bars.
