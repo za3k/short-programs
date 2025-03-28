@@ -265,14 +265,15 @@ def log_pomodoro_done(kp, task):
 
 if __name__ == '__main__':
     poms, pom_last, pom_this = load(), None, None
+    dur = int(os.getenv("POMODORO_DURATION", POMODORO_DURATION))
     stdout.write(SAVE_TERM)
     while (kp := waiting(poms)) not in "Qq\x03": # Ctrl-C
         pom_this, pom_last = None, pom_this
         if kp in "Pp \r" and (poms or do_new(poms, 0)): # Enter
-            kp, pom_this = do_pomodoro(poms)
+            kp, pom_this = do_pomodoro(poms, dur)
         while kp in "Rr" and (pom_last := (pom_this or pom_last)):
             poms.insert(0, pom_last)
-            kp, pom_this = do_pomodoro(poms)
+            kp, pom_this = do_pomodoro(poms, dur)
 
         if kp in "Cc" and poms and confirm("Really delete all pomodoros?"):
             for pom in poms: log_pomodoro_done(kp, pom)
