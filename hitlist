@@ -1,0 +1,97 @@
+#!/usr/bin/python3
+"""
+Run a command periodically, which outputs "Things to do", one per line.
+
+As each disappears, change its color to red (done) and add how long it took to remove.
+
+Save the score list to a file.
+"""
+
+import argparse
+import subprocess
+import sys
+from time import time, sleep
+
+first_seen = {}
+last_seen = {}
+currently_visible = {}
+
+def run_command(command):
+    x = subprocess.check_output(' '.join(command), shell=True).decode("utf8")
+    return x.split("\n")[:-1]
+
+def p(f, s, color):
+    if f == sys.stdout and color:
+        s = f"\x1B[{color}{s}\x1B[0m"
+    print(s, file=f)
+
+def write_file(file, items, times):
+    for item in items:
+        t = times[item]
+        if t:
+            p(file, f"{item} [{int(t)}s]", "32;40m")
+        else:
+            p(file, item, "94;40m")
+
+def loop(delay, command, filename):
+    start = time()
+    while True:
+        items, now = run_command(command), time()
+
+        finished_at = {}
+        for k in items:
+            if k not in first_seen:
+                first_seen[k] = now
+            last_seen[k] = now
+        for k in currently_visible:
+            currently_visible[k] = False
+            finished_at[k] = last_seen[k]+delay
+        for k in items:
+            currently_visible[k] = True
+            finished_at[k] = None
+
+        # compute delta times
+        # if one task was finished 80s after start, and one 93s after the start,
+        # the second task "took" 13s
+        time_taken = {}
+        delta_time = {}
+        unique_times = sorted(set(finished_at.values())-{None})
+        for a,b in zip([start]+unique_times[:-1], unique_times):
+            delta_time[b]=b-a
+        for k in finished_at:
+            time_taken[k] = delta_time.get(finished_at[k])
+
+        ever_seen = sorted(
+            currently_visible.keys(), 
+            key=lambda k: (not currently_visible[k], last_seen[k], first_seen[k]),
+        )
+
+        # Display
+        sys.stdout.write("\x1B[2J\x1B[H") # Clear the screen and home the cursor
+        write_file(sys.stdout, ever_seen, time_taken)
+
+        # Write to file
+        if filename is not None:
+            with open(filename, "w") as f:
+                write_file(f, ever_seen, time_taken)
+
+        sleep(delay)
+
+if __name__ == "__main__":
+    delay = 1
+    command = "cat ~/a.txt"
+    filename = "home_dir.txt"
+    parser = argparse.ArgumentParser(
+        prog="hitlist",
+        description="Combination between 'watch' and a TODO list",
+    )
+    parser.add_argument('--score-file', action="store", default="hitlist-score.txt")
+    parser.add_argument('--no-score-file', action="store_const", dest="score_file")
+    parser.add_argument("-n", "--interval", action="store", type=int, default=1)
+    parser.add_argument("command", nargs="+")
+    args = parser.parse_args()
+
+    try:
+        loop(delay=args.interval, command=args.command, filename=args.score_file)
+    except KeyboardInterrupt:
+        pass

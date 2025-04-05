@@ -195,6 +195,25 @@ On the left is the habit; on the right is how long since I've done that. You pre
 
 Usage: `habit-tracker`
 
+hitlist
+---
+
+A cross between `watch` and a TODO list. Basically an automatic checklist that uses a unix command.
+
+You can use this to track how long it takes you remove everything from a command-generated TO DO list.
+
+Usage:
+
+    hitlist -- ls -1 ~
+
+    hitlist --no-score-file -n20 'cat ~/documents/TODO.txt | fgrep -v "[x]"'
+
+Each line is considered one "task". A list of lines to cross off is displayed, along with how long each one took.
+
+Your "scorefile" is saved at the end [default name is `hitlist_score.txt`]
+
+Repeated lines and re-introduced lines are dealt with in a reasonable way. There is no way to stop and resume progress on a list.
+
 hours
 ---
 Reports what hours I was at the computer, based on my bash history. On linux, I instead use [keystroked](https://github.com/vanceza/keystroked).
