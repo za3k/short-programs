@@ -37,7 +37,6 @@ def lines(file):
         # We are now an ancestor
         last_level = level
         ancestry.append(lineno)
-        #print(lineno, level, repr(line), ancestry)
 
         yield ancestry, line
 
@@ -55,13 +54,14 @@ def grep(search, file, filename):
     print_all = set()
     print_direct = set()
 
+    # Queue up print tasks
     for ancestry, line in lines(file):
         if search.casefold() in line.casefold():
-            # Queue up some print tasks
             print_all.add(ancestry[-1])
             print_direct.update(ancestry)
     print_direct.discard(None)
 
+    # Print
     for ancestry, line in lines(file):
         if (    any(x in print_all for x in ancestry) or
                 ancestry[-1] in print_direct or
