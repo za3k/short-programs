@@ -8,6 +8,7 @@ Save the score list to a file.
 """
 
 import argparse
+import os
 import shlex
 import subprocess
 import sys
@@ -22,8 +23,11 @@ def run_command(command):
     return x.split("\n")[:-1]
 
 def p(f, s, color):
-    if f == sys.stdout and color:
-        s = f"\x1B[{color}{s}\x1B[0m"
+    if f == sys.stdout:
+        cols = os.get_terminal_size().columns
+        s = s[:cols]
+        if color:
+            s = f"\x1B[{color}{s}\x1B[0m"
     print(s, file=f)
 
 def write_file(file, header, items, times):
@@ -74,7 +78,8 @@ def loop(delay, command, filename):
 
         # Display
         sys.stdout.write("\x1B[2J\x1B[H") # Clear the screen and home the cursor
-        write_file(sys.stdout, header, ever_seen, time_taken)
+        height = os.get_terminal_size().lines
+        write_file(sys.stdout, header, ever_seen[:height-3], time_taken)
 
         # Write to file
         if filename is not None:
