@@ -9,14 +9,11 @@ Save the score list to a file.
 
 import argparse
 import os
+import re
 import shlex
 import subprocess
 import sys
 from time import time, sleep
-
-first_seen = {}
-last_seen = {}
-currently_visible = {}
 
 def run_command(command):
     x = subprocess.check_output(' '.join(command), shell=True).decode("utf8")
@@ -44,7 +41,24 @@ def loop(delay, command, filename):
     header = ' '.join(shlex.quote(x) for x in command)
     header = f"every {delay:.1f}s:    {header}"
 
+    first_seen = {}
+    last_seen = {}
+    currently_visible = {}
     start = time()
+
+    # Load from score file to continue
+    if filename is not None and os.path.exists(filename):
+        with open(filename, "r") as f:
+            for line in list(f)[2:]:
+                line = line.removesuffix("\n")
+                if m := re.fullmatch(r"(.*) \[(\d+)s\]", line):
+                    item, s = m.group(1), int(m.group(2))
+                else:
+                    item, s = line, 0
+                last_seen[item] = start
+                first_seen[item] = start-s
+                currently_visible[item] = False
+
     while True:
         items, now = run_command(command), time()
 

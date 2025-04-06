@@ -212,9 +212,9 @@ Usage:
 
 Each line is considered one "task". A list of lines to cross off is displayed, along with how long each one took.
 
-Your "scorefile" is saved at the end [default name is `hitlist_score.txt`]
+Your "scorefile" is saved at the end [default name is `hitlist_score.txt`].
 
-Repeated lines and re-introduced lines are dealt with in a reasonable way. There is no way to stop and resume progress on a list.
+Repeated lines and re-introduced lines are dealt with in a reasonable way.
 
 hours
 ---
