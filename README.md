@@ -202,6 +202,8 @@ A cross between `watch` and a TODO list. Basically an automatic checklist that u
 
 You can use this to track how long it takes you remove everything from a command-generated TO DO list.
 
+![hitlist screenshot](hitlist.png)
+
 Usage:
 
     hitlist -- ls -1 ~

@@ -8,6 +8,7 @@ Save the score list to a file.
 """
 
 import argparse
+import shlex
 import subprocess
 import sys
 from time import time, sleep
@@ -25,7 +26,9 @@ def p(f, s, color):
         s = f"\x1B[{color}{s}\x1B[0m"
     print(s, file=f)
 
-def write_file(file, items, times):
+def write_file(file, header, items, times):
+    p(file, header, None)
+    p(file, "", None)
     for item in items:
         t = times[item]
         if t:
@@ -34,6 +37,9 @@ def write_file(file, items, times):
             p(file, item, "94;40m")
 
 def loop(delay, command, filename):
+    header = ' '.join(shlex.quote(x) for x in command)
+    header = f"every {delay:.1f}s:    {header}"
+
     start = time()
     while True:
         items, now = run_command(command), time()
@@ -68,12 +74,12 @@ def loop(delay, command, filename):
 
         # Display
         sys.stdout.write("\x1B[2J\x1B[H") # Clear the screen and home the cursor
-        write_file(sys.stdout, ever_seen, time_taken)
+        write_file(sys.stdout, header, ever_seen, time_taken)
 
         # Write to file
         if filename is not None:
             with open(filename, "w") as f:
-                write_file(f, ever_seen, time_taken)
+                write_file(f, header, ever_seen, time_taken)
 
         sleep(delay)
 
