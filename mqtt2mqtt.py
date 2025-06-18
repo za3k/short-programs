@@ -1,9 +1,10 @@
 #!/bin/python3
-import datetime
+from datetime import datetime
 import json
 import paho.mqtt.client
 import queue
 import struct
+import subprocess
 
 class Monitor():
     def __init__(self):
@@ -43,6 +44,8 @@ class Monitor():
         for callback in callbacks:
             callback(client, message)
 
+#### Blinds ####
+
 def control_blinds(client, message):
     j = json.loads(message.payload)
     state = j["action"]
@@ -53,9 +56,45 @@ def control_blinds(client, message):
             topic, message = "zigbee2mqtt/Blinds/{}/Blind/set".format(blind), '{{"position": {} }}'.format(level)
         client.publish(topic, message)
 
+#### Button logging #####
+
+def log(time, topic, button):
+    msg = "{} {}".format(topic, button)
+    print("[button pressed]", msg)
+    subprocess.run(["/bin/log", "button"], input=(msg.encode("utf8")+b"\n"))
+
+def log_buttons(client, message):
+    j = json.loads(message.payload)
+    state = j["action"]
+    now = datetime.now()
+    log(now, message.topic, state)
+
+##### Button actions #####
+
+# 1 2
+# 3 4
+BUTTON_TRIGGERS = {
+    #"1/1_single": increase_volume,
+    #"1/3_double": decrease_volume,
+    #"1/2_hold": order pizza,
+    #"1/3_double": toggle_radio,
+}
+def button_triggers(client, message):
+    j = json.loads(message.payload)
+    state = j["action"]
+    id = message.topic.split("/")[-2]
+    trigger = "{}/{}".format(id, state)
+    if trigger in BUTTON_TRIGGERS:
+        print("Running trigger {}".format(trigger))
+        BUTTON_TRIGGERS[trigger]()
+
+##### ##### ##### ##### #####
+
 if __name__ == '__main__':
     m = Monitor()
     m.start()
 
-    m.on("zigbee2mqtt/Blinds/1/Remote", control_blinds)
+    #m.on("zigbee2mqtt/Blinds/1/Remote", control_blinds)
+    m.on("zigbee2mqtt/4WaySwitch/1/Buttons", log_buttons)
+    m.on("zigbee2mqtt/4WaySwitch/1/Buttons", button_triggers)
     m.wait()
