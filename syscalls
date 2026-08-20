@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ $1 = "-v" ]; then shift;
+    strace -c --summary-sort-by calls --summary-columns calls,syscall "$@" 2>&1 >/dev/null | head -n -2 | tail -n +3
+else
+    strace -c --summary-sort-by calls --summary-columns syscall "$@" 2>&1 >/dev/null | head -n -2 | tail -n +3
+fi

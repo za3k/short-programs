@@ -581,6 +581,14 @@ sum
 ---
 Adds a list of numbers, one per line.
 
+syscalls
+---
+Lists syscalls used by a program. (thin strace wrapper)
+
+Usage:
+
+    syscalls [-v] PROG [ARGS...]
+
 swap.sh
 ---
 Switches the names of two files.
