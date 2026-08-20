@@ -71,6 +71,10 @@ Example:
 
     sudo check-if-zeros /dev/sdb
 
+clip-to-board
+---
+Takes a screenshot, saved to the clipboard.
+
 coinflip
 ---
 Randomly prints 'heads' or 'tails'.
