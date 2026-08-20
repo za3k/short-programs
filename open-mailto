@@ -8,7 +8,7 @@ Opens in a browser the URL
     https://webmail.za3k.com/?_task=mail&_action=compose&_to=me@mail.com&_subject=mysubject&_message=mybody
 
 To set this as your program to open mailto links, first run:
-    sudo mailto-opener --install
+    sudo open-mailto --install
 And then fully close any browser you want it to work in (really).
 """
 import pwd, grp
@@ -44,7 +44,7 @@ def usage():
 def install():
     binary = os.path.abspath(__file__)
     #myname = sys.argv[0].split("/")[-1]
-    DESKTOP_NAME = "mailto-opener.desktop"
+    DESKTOP_NAME = "open-mailto.desktop"
     DESKTOP_PATH = os.path.join("/usr/local/share/applications", DESKTOP_NAME)
     with open(DESKTOP_PATH, "w") as f:
         f.write(DESKTOP.format(BIN=binary))

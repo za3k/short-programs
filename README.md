@@ -284,17 +284,17 @@ Example:
 
     echo "Backed up the computer." | log backups
 
-mailto-opener
+open-mailto
 ---
 Open email links in Roundcube. Edit the file to change the URL.
 
 Installation (as default opener):
     
-    sudo mailto-opener --install
+    sudo open-mailto --install
 
 Usage:
 
-    mailto-opener "mailto:za3k@za3k.com"
+    open-mailto "mailto:za3k@za3k.com"
 
 math
 ---
@@ -560,6 +560,10 @@ Gives a summary of average and standard deviation of sleep times.
 Example:
 
     sleep_summary 8h40m 5h20m 7h
+
+speaker-toggle, with-speaker-toggle
+---
+Switches between playing local audio, and playing to snapcast
 
 ssh-quote
 ---

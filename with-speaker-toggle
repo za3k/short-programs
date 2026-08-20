@@ -1,0 +1,17 @@
+#!/bin/bash
+# with-speaker-toggle: run a command with house streaming toggled on,
+# toggling back off when it exits — including exit via Ctrl-C or kill.
+#
+#   with-speaker-toggle mpv --audio-delay=-2.7 video.mkv
+
+if pgrep -f "parec -d snapcast.monitor" >/dev/null; then
+    exec "$@"
+fi
+
+TOGGLE="${TOGGLE:-speaker-toggle}"
+
+"$TOGGLE"
+trap 'exit 130' INT TERM        # convert fatal signals to a normal exit...
+trap '"$TOGGLE"' EXIT           # ...so the EXIT trap always toggles back
+
+"$@"

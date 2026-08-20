@@ -1,0 +1,48 @@
+#!/bin/bash
+# snapstream-laptop-toggle: cast this laptop's audio to the house.
+#   ON:  point all snapserver groups at the 'laptop' stream, route local
+#        audio into the snapcast null sink, bridge it to the server's TCP
+#        source.
+#   OFF (run again): kill the bridge, restore local audio, point groups
+#        back at the 'default' (desktop) stream.
+# Needs: pactl, parec, nc (openbsd-netcat), curl, python3.
+
+SERVER=192.168.1.20
+RPC="http://$SERVER:1780/jsonrpc"
+SNAP_SINK=snapcast
+STREAM_ON=laptop
+STREAM_OFF=default
+
+set_streams() {  # $1 = stream id to assign to every group
+    curl -s "$RPC" -d '{"id":1,"jsonrpc":"2.0","method":"Server.GetStatus"}' |
+    python3 -c 'import json,sys; [print(g["id"]) for g in json.load(sys.stdin)["result"]["server"]["groups"]]' |
+    while read -r gid; do
+        curl -s "$RPC" -d "{\"id\":2,\"jsonrpc\":\"2.0\",\"method\":\"Group.SetStream\",\"params\":{\"id\":\"$gid\",\"stream_id\":\"$1\"}}" >/dev/null
+    done
+}
+
+REAL_SINK=$(pactl list short sinks | awk '$2!="snapcast" && $2!="everywhere" {print $2; exit}')
+
+if pgrep -f "parec -d $SNAP_SINK.monitor" >/dev/null; then
+    pkill -f "parec -d $SNAP_SINK.monitor"
+    pactl set-default-sink "$REAL_SINK"
+    pactl list short sink-inputs | while read -r id _; do
+        pactl move-sink-input "$id" "$REAL_SINK" 2>/dev/null
+    done
+    set_streams "$STREAM_OFF"
+    notify-send -t 2000 "Snapcast" "laptop casting OFF" 2>/dev/null
+else
+    # create the sink on demand; survives until logout, no config needed
+    pactl list short sinks | awk '{print $2}' | grep -qx "$SNAP_SINK" ||
+        pactl load-module module-null-sink sink_name=$SNAP_SINK \
+            sink_properties=device.description=Snapcast >/dev/null
+    pactl set-default-sink "$SNAP_SINK"
+    pactl list short sink-inputs | while read -r id _; do
+        pactl move-sink-input "$id" "$SNAP_SINK" 2>/dev/null
+    done
+    ( parec -d "$SNAP_SINK.monitor" --format=s16le --rate=48000 --channels=2 \
+        | nc -N "$SERVER" 4953 ) &
+    disown
+    set_streams "$STREAM_ON"
+    notify-send -t 2000 "Snapcast" "laptop casting ON → house" 2>/dev/null
+fi
