@@ -1,0 +1,5 @@
+#!/bin/sh
+shuf -n1 <<EOF
+heads
+tails
+EOF

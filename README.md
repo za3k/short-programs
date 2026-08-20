@@ -71,6 +71,10 @@ Example:
 
     sudo check-if-zeros /dev/sdb
 
+coinflip
+---
+Randomly prints 'heads' or 'tails'.
+
 copy-photo
 ---
 Specific to me. Copies my latest google photo to the clipboard.
