@@ -1,17 +1,50 @@
 #!/bin/bash
-# snapstream-laptop-toggle: cast this laptop's audio to the house.
-#   ON:  point all snapserver groups at the 'laptop' stream, route local
-#        audio into the snapcast null sink, bridge it to the server's TCP
-#        source.
-#   OFF (run again): kill the bridge, restore local audio, point groups
-#        back at the 'default' (desktop) stream.
-# Needs: pactl, parec, nc (openbsd-netcat), curl, python3.
+# cast-toggle — toggle this machine's audio into the snapcast house system.
+# Written by Claude (Anthropic).
+#
+# One script, two behaviours, chosen by hostname:
+#
+#   juice — the desktop, which is also the snapserver host
+#     Routing only. The capture bridge (parec -> /tmp/snapfifo) and the
+#     room's snapclient are permanent systemd services there, so this just
+#     moves audio between the real sink and the snapcast null sink.
+#     State marker: is the default sink 'snapcast'?
+#
+#   rosemary (the laptop), and any other guest machine
+#     Builds its own null sink and socat bridge to the server's tcp source,
+#     and points every server group at the 'laptop' stream; reverses all of
+#     it on the second run.
+#     State marker: is the bridge running?
+#
+# Needs: pactl, and on guests also parec, socat, curl, python3.
 
 SERVER=192.168.1.20
 RPC="http://$SERVER:1780/jsonrpc"
 SNAP_SINK=snapcast
+DESKTOP_HOST=juice        # runs snapserver + permanent capture bridge + room client
+LAPTOP_HOST=rosemary      # guest: brings its own sink and bridge
 STREAM_ON=laptop
 STREAM_OFF=default
+
+# socat's argv contains the parec command line, so this one pattern is both
+# the "am I casting?" marker and the killer for the whole bridge.
+BRIDGE_PAT="parec -d $SNAP_SINK.monitor"
+
+REAL_SINK=$(pactl list short sinks | awk '$2!="snapcast" && $2!="everywhere" {print $2; exit}')
+
+note() { notify-send -t 2000 "Snapcast" "$1" 2>/dev/null; }
+
+# Move every sink-input EXCEPT a local snapclient's own playback stream —
+# moving that into the null sink would feed the stream back into itself.
+# (No-op on machines without a local snapclient.)
+move_all_to() {
+    pactl list sink-inputs | awk -v RS= '
+        /application.process.binary = "snapclient"/ { next }
+        match($0, /Sink Input #[0-9]+/) { print substr($0, RSTART+12, RLENGTH-12) }
+    ' | while read -r id; do
+        pactl move-sink-input "$id" "$1" 2>/dev/null
+    done
+}
 
 set_streams() {  # $1 = stream id to assign to every group
     curl -s "$RPC" -d '{"id":1,"jsonrpc":"2.0","method":"Server.GetStatus"}' |
@@ -21,28 +54,57 @@ set_streams() {  # $1 = stream id to assign to every group
     done
 }
 
-REAL_SINK=$(pactl list short sinks | awk '$2!="snapcast" && $2!="everywhere" {print $2; exit}')
+toggle_desktop() {
+    if [ "$(pactl get-default-sink)" = "$SNAP_SINK" ]; then
+        pactl set-default-sink "$REAL_SINK"
+        move_all_to "$REAL_SINK"
+        note "streaming OFF — local speakers direct"
+    else
+        pactl set-default-sink "$SNAP_SINK"
+        move_all_to "$SNAP_SINK"
+        note "streaming ON — house-wide"
+    fi
+}
 
-if pgrep -f "parec -d $SNAP_SINK.monitor" >/dev/null; then
-    pkill -f "parec -d $SNAP_SINK.monitor"
-    pactl set-default-sink "$REAL_SINK"
-    pactl list short sink-inputs | while read -r id _; do
-        pactl move-sink-input "$id" "$REAL_SINK" 2>/dev/null
-    done
-    set_streams "$STREAM_OFF"
-    notify-send -t 2000 "Snapcast" "laptop casting OFF" 2>/dev/null
-else
-    # create the sink on demand; survives until logout, no config needed
-    pactl list short sinks | awk '{print $2}' | grep -qx "$SNAP_SINK" ||
-        pactl load-module module-null-sink sink_name=$SNAP_SINK \
-            sink_properties=device.description=Snapcast >/dev/null
-    pactl set-default-sink "$SNAP_SINK"
-    pactl list short sink-inputs | while read -r id _; do
-        pactl move-sink-input "$id" "$SNAP_SINK" 2>/dev/null
-    done
-    ( parec -d "$SNAP_SINK.monitor" --format=s16le --rate=48000 --channels=2 \
-        | nc -N "$SERVER" 4953 ) &
-    disown
-    set_streams "$STREAM_ON"
-    notify-send -t 2000 "Snapcast" "laptop casting ON → house" 2>/dev/null
-fi
+toggle_guest() {
+    if pgrep -f "$BRIDGE_PAT" >/dev/null; then
+        pkill -f "$BRIDGE_PAT"
+        pactl set-default-sink "$REAL_SINK"
+        move_all_to "$REAL_SINK"
+        set_streams "$STREAM_OFF"
+        note "laptop casting OFF"
+    else
+        # create the sink on demand; survives until logout, no config needed
+        pactl list short sinks | awk '{print $2}' | grep -qx "$SNAP_SINK" ||
+            pactl load-module module-null-sink sink_name=$SNAP_SINK \
+                sink_properties=device.description=Snapcast >/dev/null
+        pactl set-default-sink "$SNAP_SINK"
+        move_all_to "$SNAP_SINK"
+
+        # REPEATABLE LATENCY, in order of importance:
+        #  1. TCP address FIRST, parec spawned by socat as the second
+        #     address: socat connects before starting the child, so no audio
+        #     is produced into a not-yet-draining socket. That startup race
+        #     is what made the A/V offset differ every session.
+        #  2. sndbuf / -b / --latency-msec cap the remaining buffers — not
+        #     for low latency, but because the standing backlog can never
+        #     exceed total buffer capacity, so capping capacity bounds drift.
+        # socat kills the child on exit and the child dies on SIGPIPE
+        # regardless, so no zombie can hog snapserver's single-connection
+        # tcp source.
+        socat -b 8192 "TCP:$SERVER:4953,sndbuf=16384" \
+            EXEC:"parec -d $SNAP_SINK.monitor --format=s16le --rate=48000 --channels=2 --latency-msec=50" \
+            >/dev/null 2>&1 &
+        disown
+
+        set_streams "$STREAM_ON"
+        note "laptop casting ON → house"
+    fi
+}
+
+case "$(hostname -s)" in
+    "$DESKTOP_HOST") toggle_desktop ;;
+    "$LAPTOP_HOST")  toggle_guest ;;
+    *)               toggle_guest ;;   # unknown host: guest is the safe default,
+                                       # since it assumes no local services
+esac
