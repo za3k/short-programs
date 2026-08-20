@@ -613,6 +613,14 @@ tag_images
 ---
 Tag images in a directory interactively, using 'feh'. One button resizes, another tags the image using an interactive program. I use this for processing scanned images.
 
+tee-cmd
+---
+Usage: some_command | tee-cmd output.log
+
+The output file will start with:
+    $ some_command # 2025-01-10 14:32:01
+    <stdout follows>
+
 timer
 ---
 Kitchen timer for the command line. 'countdown' just displays a time, 'timer' additionally beeps at the end
