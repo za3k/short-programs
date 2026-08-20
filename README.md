@@ -645,6 +645,10 @@ webcam-picture
 ---
 Use the webcam to take a single picture. Usage: `webcam-picture picture.png`
 
+weekly
+---
+My weekly review process. Not interesting to anyone else.
+
 wordcount
 ---
 Counts the number of words in a file or stream.

@@ -1,0 +1,2 @@
+#!/bin/sh
+ssh -t laptop ~/.projects/short-programs/weekly-review-tmux.bash
