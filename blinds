@@ -6,7 +6,7 @@ ZIGBEE_BROKER = "192.168.1.17"
 BLINDS = { # Range of open/closed. 100 is fully open.
     1: (28, 95),
     2: (25, 93),
-    3: (25, 93),
+    3: (26, 93),
 }
 
 USAGE = """
@@ -27,9 +27,9 @@ def change_scale(x, in_range, out_range):
 def parse(blind_num, arg):
     """Return a whole-number percent 0 (closed) to 100 (open)"""
     min_, max_ = BLINDS.get(blind_num, (0, 100))
-    if arg in ["close", "closed"]:
+    if arg in ["close", "closed", "c"]:
         return min_
-    elif arg == "open":
+    elif arg in ["open", "o"]:
         return 100
     arg = change_scale(float(arg), (0.0, 100.0), (min_, max_))
     return int(arg)
@@ -42,6 +42,9 @@ def control(blind_num, arg):
     return subprocess.Popen(command)
 
 args = sys.argv[1:]
+if len(args) == 1 and len(args[0]) == 3: # ooc
+    args = [args[0][0], args[0][1], args[0][2]]
+
 if len(args) == 1 and args[0] == "privacy":
     levels = ["closed", "open", "open"]
 elif len(args) == 1:

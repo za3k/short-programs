@@ -1,5 +1,7 @@
 #!/bin/python
-import configparser, os, random, subprocess, tempfile, time, zipfile
+import configparser, os, random, subprocess, sys, tempfile, time, zipfile
+
+USAGE = """Usage: random-book [REQUIRED_WORD REQUIRED_WORD ...] [-BANNED_WORD -BANNED_WORD ...] [-h]""".strip()
 
 def random_book(bookdir):
     # First, pick a random zip file
@@ -49,20 +51,16 @@ def is_language(text, requested):
     except:
         return False
 
-BLACKLIST="""
-u.s.
-""".strip().split("\n")
-
-WHITELIST="""
-assassin
-""".strip().split("\n")
+BLACKLIST=[]
+WHITELIST=[]
 
 def blacklisted(text, blacklist):
     text = text.lower()
-    for word in blacklist:
-        if text.count(word.lower()) > 10:
-            return True
-whitelisted = blacklisted
+    return any(text.count(word.lower()) > 10 for word in blacklist)
+
+def whitelisted(text, whitelist):
+    text = text.lower()
+    return all(text.count(word.lower()) > 10 for word in whitelist)
 
 def suitable(text):
     text = text.decode('utf8')
@@ -70,11 +68,22 @@ def suitable(text):
         return False
     if blacklisted(text, BLACKLIST):
         return False
-    if not whitelisted(text, WHITELIST):
+    if WHITELIST and not whitelisted(text, WHITELIST):
         return False
     return True
 
 if __name__ == '__main__':
+    for word in sys.argv[1:]:
+        if word in ("-h", "--help"):
+            print(USAGE)
+            sys.exit(0)
+        elif word.startswith("-"):
+            BLACKLIST.append(word[1:])
+        elif word.startswith("+"):
+            WHITELIST.append(word[1:])
+        else:
+            WHITELIST.append(word)
+
     config_path = os.path.join(os.path.dirname(__file__), ".random-book.ini")
     assert os.path.exists(config_path)
     config = configparser.ConfigParser()

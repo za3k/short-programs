@@ -14,7 +14,7 @@ TONE = {
     2: 700,
 }
 rate = 48000 # Hz
-vol = 1 # As a percentage
+vol = .1 # As a percentage
 
 Status = namedtuple("Status", ["battery", "status", "percent"])
 class Monitor():

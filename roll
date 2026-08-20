@@ -2,7 +2,7 @@
 import random, re, sys
 s = "".join(sys.argv[1:]).replace(" ", "")
 
-REGEX = "(\d*)d(\d+)([-+]\d+)?"
+REGEX = r"""(\d*)d(\d+)([-+]\d+)?"""
 m = re.match(REGEX, s)
 if m:
     dice, sides, modifier = m.group(1), m.group(2), m.group(3)
