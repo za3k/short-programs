@@ -234,6 +234,10 @@ internet_up?
 ---
 Maintains a file at /var/tmp/internet_up reading "up" or "down". Run as a daemon. Useful for status bars.
 
+ij
+---
+A journaling system ("intention journalling"). Copies the previous day's journal each day, to form snapshots.
+
 ir
 ---
 Interactive program to try incremental reading.

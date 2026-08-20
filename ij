@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir -p ~/documents/intentionjournal
+cp --update=none ~/documents/intentionjournal.txt ~/documents/intentionjournal/intentionjournal.$(\date +%Y-%m-%d --date "1 day ago").txt
+vim -p ~/documents/intentionjournal.txt ~/documents/TODO
