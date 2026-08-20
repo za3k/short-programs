@@ -504,6 +504,10 @@ Output:
     1d6+4 = 6
     2d10+0 = 19
 
+rotation
+---
+Yet another minimal infinite habit system. Not recommended.
+
 run-bytes
 ---
 Given a sequence of x86-64 machine code bytes on stdin, execute them.

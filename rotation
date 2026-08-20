@@ -1,0 +1,128 @@
+#!/bin/python3
+import atexit
+import collections
+import os
+import termios
+import select
+import sys
+import pickle
+import tty
+import readline # magically adds readline to input()
+
+stdin = os.fdopen(sys.stdin.fileno(), 'rb', buffering=0)
+CURSOR_HIDE = "\x1b[?25l"
+CURSOR_SHOW = "\x1b[?25h"
+def get_key(timeout=9999999, default=None): 
+    """
+    Return the pressed keyboard button as a string.
+    Note, sometimes buttons are more than one byte (ex. arrow keys)
+
+    The default value is returned ONLY if the optional timeout expires
+    """
+    old_settings = termios.tcgetattr(stdin)
+    try:
+        tty.setraw(stdin)
+        rlist, _, _ = select.select([stdin], [], [], timeout)
+        if rlist:
+            kp = b""
+            while select.select([stdin], [], [], 0.1)[0]:
+                kp += stdin.read(1)
+            return kp.decode("utf8")
+    finally:
+        termios.tcsetattr(stdin, termios.TCSADRAIN, old_settings)
+    return default
+
+def clear_screen():
+    sys.stdout.write("\x1b[2J\x1b[H\x1b[?25l\x1b[?5l" + CURSOR_HIDE)
+
+class DB():
+    def __init__(self, path=".rotlist"):
+        self.path = path
+        self.d = collections.deque()
+        try:
+            with open(path, "rb") as f:
+                self.d = pickle.load(f)
+        except EOFError, FileNotFoundError:
+            pass
+        atexit.register(self.save_data)
+
+    def save_data(self):
+        with open(self.path, "wb") as f:
+            pickle.dump(self.d, f, pickle.HIGHEST_PROTOCOL)
+
+    def __iter__(self):
+        return iter(self.d)
+
+    def insertBack(self, thing):
+        self.d.append(thing)
+
+    def popFront(self):
+        return self.d.popleft()
+
+class List():
+    def __init__(self):
+        self.tasks = DB()
+        self.logfile = open(".rotlist.log", "a")
+
+    def log(self, event, task):
+        print(event, task, file=self.logfile)
+
+    def display(self):
+        clear_screen()
+        tasks = list(self.tasks)
+        if len(tasks) > 10:
+            tasks = tasks[:7] + ["..."] + tasks[-2:]
+        for text in tasks:
+            print(text)
+        print()
+        print("a = add / t = tap / d = done / s = skip / r = remove / q = quit")
+
+    def getInput(self):
+        i = "x"
+        while i not in "adqrst":
+            i = get_key()
+        return i
+
+    def promptTask(self):
+        sys.stdout.write(CURSOR_SHOW)
+        return input("Task? ")
+        sys.stdout.write(CURSOR_HIDE)
+
+    def done(self) -> None:
+        task = self.tasks.popFront()
+        self.log("done", task)
+
+    def remove(self) -> None:
+        task = self.tasks.popFront()
+        self.log("remove", task)
+
+    def tap(self) -> None:
+        x = self.tasks.popFront()
+        self.log("tap", x)
+        self.tasks.insertBack(x + "+")
+
+    def skip(self) -> None:
+        x = self.tasks.popFront()
+        self.log("skip", x)
+        self.tasks.insertBack(x + "-")
+
+    def add(self, task: str) -> taskID:
+        self.log("add", task)
+        return self.tasks.insertBack(task)
+
+    def main(self):
+        atexit.register(lambda: sys.stdout.write(CURSOR_SHOW))
+        while True:
+            self.display()
+            match self.getInput():
+                case "t": self.tap()
+                case "s": self.skip()
+                case "d": self.done()
+                case "r": self.remove()
+                case "a": self.add(self.promptTask())
+                case "q": break
+                case _: pass
+
+if __name__ == "__main__":
+    l = List()
+    l.main()
