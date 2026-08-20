@@ -577,6 +577,14 @@ sum
 ---
 Adds a list of numbers, one per line.
 
+swap.sh
+---
+Switches the names of two files.
+
+Usage:
+
+    swap file1 file2
+
 tag_images
 ---
 Tag images in a directory interactively, using 'feh'. One button resizes, another tags the image using an interactive program. I use this for processing scanned images.
