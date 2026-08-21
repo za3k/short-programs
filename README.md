@@ -577,10 +577,6 @@ Example:
 
     sleep_summary 8h40m 5h20m 7h
 
-speaker-toggle, with-speaker-toggle
----
-Switches between playing local audio, and playing to snapcast
-
 ssh-quote
 ---
 Like 'ssh', except it handles quoted arguments how you might expect
@@ -631,9 +627,13 @@ Example:
     timer "20 minutes" "next pomodoro"
     timer 5m30s
 
+toggle-speaker, with-speaker-toggle
+---
+Switches between playing local audio, and playing to snapcast
+
 torrent\_size
 ---
-Display the size of a torrent file
+Display the size of (the contents of) a torrent file
 
 unix2date = ts2date
 ---
